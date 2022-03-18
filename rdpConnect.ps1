@@ -11,12 +11,12 @@ function rdpConnect {
         [uint64] $x1,
         [uint64] $y1
     )
-
+    # 獲取螢幕解析度
+    Add-Type -AssemblyName System.Windows.Forms
     # 設置參數
     $IP      = $IP
-    $width   = 2560
-    # $height  = 1440
-    $height  = 1600
+    $width   = [System.Windows.Forms.SystemInformation]::PrimaryMonitorSize.width
+    $height  = [System.Windows.Forms.SystemInformation]::PrimaryMonitorSize.height
     $x1      = 0
     $y1      = 0
     $title_h = 30

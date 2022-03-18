@@ -1,15 +1,26 @@
 function rdpConnect {
+    [CmdletBinding(DefaultParameterSetName = "A")]
     param (
+        [Parameter(Mandatory, Position = 0, ParameterSetName = "")]
         [string] $IP,
+        [Parameter(Position = 1, ParameterSetName = "")]
         [String] $Password,
         # 傻瓜包
+        [Parameter(ParameterSetName = "A")]
         [switch] $Nomal,
+        
+        [Parameter(ParameterSetName = "B")]
         [switch] $MaxWindows,
+        [Parameter(ParameterSetName = "C")]
         [switch] $FullScreen,
         # 自訂模式
+        [Parameter(ParameterSetName = "D")]
         [uint64] $device_w,
+        [Parameter(ParameterSetName = "D")]
         [uint64] $device_h,
+        [Parameter(ParameterSetName = "D")]
         [uint64] $x1,
+        [Parameter(ParameterSetName = "D")]
         [uint64] $y1
     )
     # 獲取螢幕解析度
@@ -28,6 +39,14 @@ function rdpConnect {
     $device_h = $height - ($title_h+$star_h+16)
     $x2 = $x1+$device_w +16
     $y2 = $y1+$device_h +16 + $title_h
+    # 設定模式
+    $Nomal = $true
+    if ($MaxWindows) {$Nomal = $false}
+    if ($Nomal) {
+        $new_w = $device_h/3*4
+        $x1 = $device_w - $new_w
+        $device_w = $new_w
+    }
     # 檢查是否超過螢幕
     $device_x_max = $width
     $device_y_max = $height-$star_h
@@ -51,7 +70,7 @@ function rdpConnect {
     Start-Process $rdp_path
 }
 
-# function __rdpConnect_Tester__ {
+function __rdpConnect_Tester__ {
     # rdpConnect 10.216.242.174
-    # rdpConnect 192.168.3.12 'P@ssw0rd3'
-# } __rdpConnect_Tester__
+    rdpConnect 192.168.3.12 'P@ssw0rd3'
+} __rdpConnect_Tester__

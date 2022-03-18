@@ -34,9 +34,17 @@ function rdpConnect {
     [uint64] $y1      = 0
     
     # 獲取樣板文件
-    # $rdp = Get-Content 'Template.rdp'
-    $rdp = Invoke-RestMethod 'raw.githubusercontent.com/hunandy14/rdpConnect/master/Template.rdp'
+    $template_path = "$env:TEMP\Template.rdp"
+    if (Test-Path $template_path -PathType:Leaf) {
+        $rdp = Get-Content $template_path
+    } else {
+        # $rdp = Get-Content 'Template.rdp'
+        $rdp = Invoke-RestMethod 'raw.githubusercontent.com/hunandy14/rdpConnect/master/Template.rdp'
+        Set-Content $template_path $rdp
+    }
     
+    
+    # 選擇模式
     if ($FullScreen) {
         # 設置 rdp 檔案
         $rdp = $rdp.Replace('${ip}'     ,$ip)
@@ -81,7 +89,9 @@ function rdpConnect {
         $rdp = $rdp.Replace('${x2}'     ,$x2)
         $rdp = $rdp.Replace('${y2}'     ,$y2)
     }
-
+    
+    
+    # 儲存 rdp 檔案並開啟
     $rdp_path = "$env:TEMP\Default.rdp"
     Set-Content $rdp_path $rdp
     Set-Clipboard $Password
@@ -89,6 +99,6 @@ function rdpConnect {
 }
 
 # function __rdpConnect_Tester__ {
-    # rdpConnect 10.216.242.174
+#     rdpConnect 10.216.242.174
 #     rdpConnect 192.168.3.12 'P@ssw0rd3'
 # } __rdpConnect_Tester__

@@ -1,6 +1,7 @@
 function rdpConnect {
     param (
         [string] $IP,
+        [String] $Password,
         # 傻瓜包
         [switch] $Nomal,
         [switch] $MaxWindows,
@@ -44,36 +45,13 @@ function rdpConnect {
     $rdp = $rdp.Replace('${x2}'     ,$x2)
     $rdp = $rdp.Replace('${y2}'     ,$y2)
 
-    $rdp > "Default.rdp"
-    Set-Clipboard 'P@ssw0rd3'
-    # Start-Process 'Default.rdp'
+    $rdp_path = "$env:TEMP\Default.rdp"
+    Set-Content $rdp_path $rdp
+    Set-Clipboard $Password
+    Start-Process $rdp_path
 }
 
-function __rdpConnect_Tester__ {
+# function __rdpConnect_Tester__ {
     # rdpConnect 10.216.242.174
-    rdpConnect 192.168.3.12
-} __rdpConnect_Tester__
-
-function rdpConnectAutoSize {
-    param (
-        [string] $IP
-    )
-    $IP     = $IP
-    $width  = 1920
-    $height = 1080
-    $x1     = 0
-    $y1     = 0
-    $x2     = ($x1+$width )+ 0
-    $y2     = ($y1+$height)- 40
-
-    $rdp = Get-Content 'Template.rdp'
-    $rdp = $rdp.Replace('${ip}'     ,$ip)
-    $rdp = $rdp.Replace('${width}'  ,$width)
-    $rdp = $rdp.Replace('${height}' ,$height)
-    $rdp = $rdp.Replace('${x1}'     ,$x1)
-    $rdp = $rdp.Replace('${y1}'     ,$y1+8)
-    $rdp = $rdp.Replace('${x2}'     ,$x2)
-    $rdp = $rdp.Replace('${y2}'     ,$y2)
-
-    $rdp > "Default.rdp"
-}
+    # rdpConnect 192.168.3.12 'P@ssw0rd3'
+# } __rdpConnect_Tester__

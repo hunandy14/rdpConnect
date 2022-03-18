@@ -4,7 +4,6 @@ function rdpConnect {
         [uint64] $width,
         [uint64] $height 
     )
-    $set_h  = (40+30+2)
 
     $IP     = $IP
     $width  = 2560
@@ -15,19 +14,20 @@ function rdpConnect {
     
     # $rdp = Get-Content 'Template.rdp'
     $rdp = irm 'raw.githubusercontent.com/hunandy14/rdpConnect/master/Template.rdp'
+    $title_h = 30
+    $star_h  = 40
     
-    $height = $height - $set_h
     $rdp = $rdp.Replace('${ip}'     ,$ip)
-    $rdp = $rdp.Replace('${width}'  ,$width-16)
-    $rdp = $rdp.Replace('${height}' ,$height-16)
+    $rdp = $rdp.Replace('${width}'  ,$width - 16)
+    $rdp = $rdp.Replace('${height}' ,$height - ($title_h+$star_h+16))
     $rdp = $rdp.Replace('${x1}'     ,$x1)
-    $rdp = $rdp.Replace('${y1}'     ,$y1+8)
-    $rdp = $rdp.Replace('${x2}'     ,($x1+$width))
-    $rdp = $rdp.Replace('${y2}'     ,($y1+$height)+31)
+    $rdp = $rdp.Replace('${y1}'     ,$y1+7)
+    $rdp = $rdp.Replace('${x2}'     ,$x1+$width)
+    $rdp = $rdp.Replace('${y2}'     ,$y1+$height - $star_h)
     
     $rdp > "Default.rdp"
     Set-Clipboard 'P@ssw0rd3'
-    Start-Process 'Default.rdp'
+    # Start-Process 'Default.rdp'
 } 
 
 function __rdpConnect_Tester__ {

@@ -1,17 +1,22 @@
 function rdpConnect {
     param (
-        [string] $IP
+        [string] $IP,
+        [uint64] $width,
+        [uint64] $height 
     )
-    $set_h  = (40+30+3)
+    $set_h  = (40+30+2)
+
     $IP     = $IP
     $width  = 2560
-    $height = 1600 - $set_h
+    # $height = 1440
+    $height = 1600
     $x1     = 0
     $y1     = 0
     
     # $rdp = Get-Content 'Template.rdp'
     $rdp = irm 'raw.githubusercontent.com/hunandy14/rdpConnect/master/Template.rdp'
     
+    $height = $height - $set_h
     $rdp = $rdp.Replace('${ip}'     ,$ip)
     $rdp = $rdp.Replace('${width}'  ,$width-16)
     $rdp = $rdp.Replace('${height}' ,$height-16)
@@ -21,10 +26,12 @@ function rdpConnect {
     $rdp = $rdp.Replace('${y2}'     ,($y1+$height)+31)
     
     $rdp > "Default.rdp"
-    # explorer.exe "Default.rdp"
+    Set-Clipboard 'P@ssw0rd3'
+    Start-Process 'Default.rdp'
 } 
 
 function __rdpConnect_Tester__ {
+    # rdpConnect 10.216.242.174
     rdpConnect 192.168.3.12
 } __rdpConnect_Tester__
 

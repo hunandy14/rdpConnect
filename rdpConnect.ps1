@@ -112,15 +112,15 @@ function Install {
     param (
         [switch] $ForceAppend
     )
-    # 下載ps1到[啟動文件]
-    $URL  = "raw.githubusercontent.com/hunandy14/rdpConnect/master/rdpConnect.ps1"
-    $File = "$Dir\rdpConnect.ps1"
-    Invoke-WebRequest $URL -OutFile:$File
-    
     # 創建[啟動文件]
     if (!(Test-Path -Path $PROFILE )) {
         New-Item -Type File -Path $PROFILE -Force
     } $Dir = (Get-Item $PROFILE).Directory
+        
+    # 下載ps1到[啟動文件]
+    $URL  = "raw.githubusercontent.com/hunandy14/rdpConnect/master/rdpConnect.ps1"
+    $File = "$Dir\rdpConnect.ps1"
+    Invoke-WebRequest $URL -OutFile:$File
     
     # 寫入[啟動文件]
     $impt = "Import-Module rdpConnect.ps1"

@@ -8,21 +8,23 @@ function rdpConnect {
         # 傻瓜包
         [Parameter(Position = 2, ParameterSetName = "A")]
         [double] $Ratio = 16/11,
-        [Parameter(ParameterSetName = "A")]
+        [Parameter(ParameterSetName = "A")] # 預設模式
         [switch] $Nomal,
-        [Parameter(ParameterSetName = "B")]
+        [Parameter(ParameterSetName = "B")] # 可選1 (最大化視窗)
         [switch] $MaxWindows,
-        [Parameter(ParameterSetName = "C")]
-        [switch] $FullScreen
+        [Parameter(ParameterSetName = "C")] # 可選2 (螢幕)
+        [switch] $FullScreen,
+        [Parameter(ParameterSetName = "D")] # 可選3 (自動解析度與位置)
+        [switch] $Define,
         # 自訂模式
-        # [Parameter(ParameterSetName = "D")]
-        # [uint64] $device_w,
-        # [Parameter(ParameterSetName = "D")]
-        # [uint64] $device_h,
-        # [Parameter(ParameterSetName = "D")]
-        # [uint64] $x1
-        # [Parameter(ParameterSetName = "D")]
-        # [uint64] $y1
+        [Parameter(Position = 2, ParameterSetName = "D")]
+        [uint64] $device_w = 0,
+        [Parameter(Position = 3, ParameterSetName = "D")]
+        [uint64] $device_h = 0,
+        [Parameter(Position = 4, ParameterSetName = "D")]
+        [uint64] $x1 = 0,
+        [Parameter(Position = 5, ParameterSetName = "D")]
+        [uint64] $y1 = 0
     )
     # 獲取螢幕解析度
     Add-Type -AssemblyName System.Windows.Forms
@@ -30,8 +32,8 @@ function rdpConnect {
     [string] $ip      = $IP
     [uint64] $width   = [System.Windows.Forms.SystemInformation]::PrimaryMonitorSize.width
     [uint64] $height  = [System.Windows.Forms.SystemInformation]::PrimaryMonitorSize.height
-    [uint64] $x1      = 0
-    [uint64] $y1      = 0
+    # [uint64] $x1      = 0
+    # [uint64] $y1      = 0
     
     # 獲取樣板文件
     $template_path = "$env:TEMP\Template.rdp"
@@ -60,16 +62,22 @@ function rdpConnect {
         $rdp = $rdp.Replace('authentication level:i:2', 'authentication level:i:0')
     } else {
         # 設置參數
-        $title_h = 30
-        $star_h  = 40
+        [uint64] $title_h    = 30
+        [uint64] $star_h     = 40
+        [uint64] $width_max  = $width - 16
+        [uint64] $height_max = $height - ($title_h+$star_h+16)
+        
+        $height
         # 遠端裝置解析度
-        [uint64] $device_w = $width - 16
-        [uint64] $device_h = $height - ($title_h+$star_h+16)
+        if ($device_w -eq 0) { $device_w = $width_max }
+        if ($device_h -eq 0) { $device_h = $height_max }
+        # $width_max
+        # $height_max
         [uint64] $x2 = $x1+$device_w +16
         [uint64] $y2 = $y1+$device_h +16 + $title_h
         # 設定模式
         $Nomal = $true
-        if ($MaxWindows) {$Nomal = $false}
+        if ($MaxWindows -or $Define) {$Nomal = $false}
         if ($Nomal) {
             $new_w = $device_h*$Ratio
             $x1 = $device_w - $new_w
@@ -78,6 +86,8 @@ function rdpConnect {
         # 檢查是否超過螢幕
         $device_x_max = $width
         $device_y_max = $height-$star_h
+        if ($device_w -gt $width_max) { $device_w = $width_max }
+        if ($device_h -gt $height_max) { $device_h = $height_max }
         if ($x2 -gt $device_x_max) { $x2 = $device_x_max }
         if ($y2 -gt $device_y_max) { $y2 = $device_y_max }
         # 設置 rdp 檔案
@@ -99,6 +109,7 @@ function rdpConnect {
 }
 
 # function __rdpConnect_Tester__ {
-#     rdpConnect 10.216.242.174
-#     rdpConnect 192.168.3.12 'P@ssw0rd3'
+    # rdpConnect 10.216.242.174
+    # rdpConnect 192.168.3.12 'P@ssw0rd3'
+    # rdpConnect 192.168.3.12 'P@ssw0rd3' -Define 1024 768 100 100
 # } __rdpConnect_Tester__

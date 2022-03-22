@@ -65,20 +65,21 @@ function rdpConnect {
         $rdp = $rdp.Replace('authentication level:i:2', 'authentication level:i:0')
     } else {
         # 設置參數
-        [uint64] $margin     = $Zoom*14+2
+        [uint64] $margin1    = $Zoom*7
+        [uint64] $margin2     = $Zoom*14+2
         
         [uint64] $title_h    = $Zoom*30
         [uint64] $star_h     = $Zoom*40
-        [uint64] $width_max  = $width - $margin
-        [uint64] $height_max = $height - ($title_h+$star_h + $margin)
+        [uint64] $width_max  = $width - $margin2
+        [uint64] $height_max = $height - ($title_h+$star_h + $margin2)
         
         # 遠端裝置解析度
         if ($device_w -eq 0) { $device_w = $width_max }
         if ($device_h -eq 0) { $device_h = $height_max }
         # $width_max
         # $height_max
-        [uint64] $x2 = $x1+$device_w +$margin
-        [uint64] $y2 = $y1+$device_h +$margin + $title_h
+        [uint64] $x2 = $x1+$device_w +$margin2
+        [uint64] $y2 = $y1+$device_h +$margin2 + $title_h
         # 設定模式
         $Nomal = $true
         if ($MaxWindows -or $Define) {$Nomal = $false}
@@ -99,7 +100,7 @@ function rdpConnect {
         $rdp = $rdp.Replace('${width}'  ,$device_w)
         $rdp = $rdp.Replace('${height}' ,$device_h)
         $rdp = $rdp.Replace('${x1}'     ,$x1)
-        $rdp = $rdp.Replace('${y1}'     ,$y1+7)
+        $rdp = $rdp.Replace('${y1}'     ,$y1+ $margin1)
         $rdp = $rdp.Replace('${x2}'     ,$x2)
         $rdp = $rdp.Replace('${y2}'     ,$y2)
     }
@@ -110,7 +111,7 @@ function rdpConnect {
     Set-Content $rdp_path $rdp
     Set-Clipboard $Password
     Start-Process $rdp_path
-} # rdpConnect 192.168.3.12 -Zoom:1.5
+} rdpConnect 192.168.3.12 -Zoom:1.0
 
 function Install {
     param (

@@ -108,6 +108,31 @@ function rdpConnect {
     Start-Process $rdp_path
 }
 
+function Install {
+    param (
+        [switch] $ForceAppend
+    )
+    # 下載ps1到[啟動文件]
+    $URL  = "raw.githubusercontent.com/hunandy14/rdpConnect/master/rdpConnect.ps1"
+    $File = "$Dir\rdpConnect.ps1"
+    Invoke-WebRequest $URL -OutFile:$File
+    
+    # 創建[啟動文件]
+    if (!(Test-Path -Path $PROFILE )) {
+        New-Item -Type File -Path $PROFILE -Force
+    } $Dir = (Get-Item $PROFILE).Directory
+    
+    # 寫入[啟動文件]
+    $impt = "Import-Module rdpConnect.ps1"
+    if ($ForceAppend) {
+        if (!((Get-Content $PROFILE)|Where-Object{$_ -eq $impt})) { Add-Content $PROFILE "`n$impt" }
+        Write-Host "已新增 Import-Module 到啟動文件結尾" -ForegroundColor:Yellow
+    } else {
+        Set-Clipboard $impt
+        notepad.exe $PROFILE
+    }
+} # Install
+
 # function __rdpConnect_Tester__ {
     # rdpConnect 10.216.242.174
     # rdpConnect 192.168.3.12 'P@ssw0rd3'

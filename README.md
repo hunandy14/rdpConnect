@@ -18,16 +18,17 @@ C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -command "irm bit.ly/3
 
 
 
-## 安裝到電腦上
+### 安裝到電腦上
 ```
-$Dir=(Get-Item $PROFILE).Directory; Set-Content "$Dir\rdpConnect.ps1" (irm bit.ly/36tr1aS)
-Set-Clipboard "$Dir=(Get-Item $PROFILE).Directory;(Get-Content `"$Dir\rdpConnect.ps1`")|iex"
-if (!(Test-Path -Path $PROFILE )) { New-Item -Type File -Path $PROFILE -Force } notepad $PROFILE
+irm bit.ly/36tr1aS|iex; Install
 ```
 
-```
-SET IP=102.168.1.1
+### 離線使用
+``` ps1
+Invoke-WebRequest 'bit.ly/36tr1aS' -OutFile:'rdpConnect.ps1'
+{SET IP=192.168.1.1
 SET PW=pw
 : pwsh -Command "&{irm bit.ly/36tr1aS|iex; rdpConnect %IP% %PW%}"
-pwsh -Command "&{Import-Module %~dp0rdpConnect\rdpConnect.ps1; rdpConnect %IP% %PW%}"
+pwsh -Command "&{Import-Module %~dp0rdpConnect\rdpConnect.ps1; rdpConnect %IP% %PW%}"} > rdp1.bat
+
 ```

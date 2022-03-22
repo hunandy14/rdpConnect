@@ -27,14 +27,14 @@ function rdpConnect {
         [uint64] $y1 = 0,
         # 螢幕縮放
         [Parameter(ParameterSetName = "")]
-        [double] $Zoom = 1
+        [double] $Zoom = 1.0
     )
     # 獲取螢幕解析度
     Add-Type -AssemblyName System.Windows.Forms
     # 設置參數
     [string] $ip      = $IP
-    [uint64] $width   = $Zoom * [System.Windows.Forms.SystemInformation]::PrimaryMonitorSize.width
-    [uint64] $height  = $Zoom * [System.Windows.Forms.SystemInformation]::PrimaryMonitorSize.height
+    [double] $width   = $Zoom * [System.Windows.Forms.SystemInformation]::PrimaryMonitorSize.width
+    [double] $height  = $Zoom * [System.Windows.Forms.SystemInformation]::PrimaryMonitorSize.height
     # [uint64] $x1      = 0
     # [uint64] $y1      = 0
     
@@ -65,11 +65,13 @@ function rdpConnect {
         $rdp = $rdp.Replace('authentication level:i:2', 'authentication level:i:0')
     } else {
         # 設置參數
-        [uint64] $margin1    = $Zoom*7
-        [uint64] $margin2     = $Zoom*14+2
+        [double] $margin1    = $Zoom*7
+        [double] $margin2    = $Zoom*14 +2.0
+        $margin1 = [Math]::Round($margin1, 0, [MidpointRounding]::AwayFromZero)
+        $margin2 = [Math]::Round($margin2, 0, [MidpointRounding]::AwayFromZero)
         
-        [uint64] $title_h    = $Zoom*30
-        [uint64] $star_h     = $Zoom*40
+        [uint64] $title_h    = $Zoom *30.0
+        [uint64] $star_h     = $Zoom *40.0
         [uint64] $width_max  = $width - $margin2
         [uint64] $height_max = $height - ($title_h+$star_h + $margin2)
         
@@ -100,7 +102,7 @@ function rdpConnect {
         $rdp = $rdp.Replace('${width}'  ,$device_w)
         $rdp = $rdp.Replace('${height}' ,$device_h)
         $rdp = $rdp.Replace('${x1}'     ,$x1)
-        $rdp = $rdp.Replace('${y1}'     ,$y1+ $margin1)
+        $rdp = $rdp.Replace('${y1}'     ,$y1 + $margin1)
         $rdp = $rdp.Replace('${x2}'     ,$x2)
         $rdp = $rdp.Replace('${y2}'     ,$y2)
     }
@@ -111,7 +113,12 @@ function rdpConnect {
     Set-Content $rdp_path $rdp
     Set-Clipboard $Password
     Start-Process $rdp_path
-} rdpConnect 192.168.3.12 -Zoom:1.0
+} 
+# rdpConnect 192.168.3.12 -Zoom:1.5
+# rdpConnect 192.168.3.12 -FullScreen -Zoom:1.5
+# rdpConnect 192.168.3.12 -MaxWindows -Zoom:1.5
+# rdpConnect 192.168.3.12 -Define 1024 768 100 100 -Zoom:1.5
+
 
 function Install {
     param (
@@ -152,9 +159,3 @@ pwsh -Command `"&{Import-Module %~dp0rdpConnect.ps1; rdpConnect %IP% %PW%}`"
 "
     $ct > rdp1.bat
 } # Download '192.168.3.12' '123456'
-
-# function __rdpConnect_Tester__ {
-    # rdpConnect 10.216.242.174
-    # rdpConnect 192.168.3.12 'P@ssw0rd3'
-    # rdpConnect 192.168.3.12 'P@ssw0rd3' -Define 1024 768 100 100
-# } __rdpConnect_Tester__

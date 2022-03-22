@@ -133,6 +133,21 @@ function Install {
     }
 } # Install
 
+
+function Download {
+    param (
+        [string] $IP = '192.168.1.1',
+        [string] $PW = ''
+    )
+    Invoke-WebRequest 'bit.ly/36tr1aS' -OutFile:'rdpConnect.ps1'
+    $ct = "SET IP=$IP
+SET PW=$PW
+: pwsh -Command `"&{irm bit.ly/36tr1aS|iex; rdpConnect %IP% %PW%}`"
+pwsh -Command `"&{Import-Module %~dp0rdpConnect.ps1; rdpConnect %IP% %PW%}`"
+"
+    $ct > rdp1.bat
+} # Download '192.168.3.12' '123456'
+
 # function __rdpConnect_Tester__ {
     # rdpConnect 10.216.242.174
     # rdpConnect 192.168.3.12 'P@ssw0rd3'

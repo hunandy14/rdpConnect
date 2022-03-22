@@ -24,14 +24,17 @@ function rdpConnect {
         [Parameter(Position = 4, ParameterSetName = "D")]
         [uint64] $x1 = 0,
         [Parameter(Position = 5, ParameterSetName = "D")]
-        [uint64] $y1 = 0
+        [uint64] $y1 = 0,
+        # 螢幕縮放
+        [Parameter(ParameterSetName = "")]
+        [double] $Zoom = 1
     )
     # 獲取螢幕解析度
     Add-Type -AssemblyName System.Windows.Forms
     # 設置參數
     [string] $ip      = $IP
-    [uint64] $width   = [System.Windows.Forms.SystemInformation]::PrimaryMonitorSize.width
-    [uint64] $height  = [System.Windows.Forms.SystemInformation]::PrimaryMonitorSize.height
+    [uint64] $width   = $Zoom * [System.Windows.Forms.SystemInformation]::PrimaryMonitorSize.width
+    [uint64] $height  = $Zoom * [System.Windows.Forms.SystemInformation]::PrimaryMonitorSize.height
     # [uint64] $x1      = 0
     # [uint64] $y1      = 0
     
@@ -62,19 +65,20 @@ function rdpConnect {
         $rdp = $rdp.Replace('authentication level:i:2', 'authentication level:i:0')
     } else {
         # 設置參數
-        [uint64] $title_h    = 30
-        [uint64] $star_h     = 40
-        [uint64] $width_max  = $width - 16
-        [uint64] $height_max = $height - ($title_h+$star_h+16)
+        [uint64] $margin     = $Zoom*14+2
         
-        $height
+        [uint64] $title_h    = $Zoom*30
+        [uint64] $star_h     = $Zoom*40
+        [uint64] $width_max  = $width - $margin
+        [uint64] $height_max = $height - ($title_h+$star_h + $margin)
+        
         # 遠端裝置解析度
         if ($device_w -eq 0) { $device_w = $width_max }
         if ($device_h -eq 0) { $device_h = $height_max }
         # $width_max
         # $height_max
-        [uint64] $x2 = $x1+$device_w +16
-        [uint64] $y2 = $y1+$device_h +16 + $title_h
+        [uint64] $x2 = $x1+$device_w +$margin
+        [uint64] $y2 = $y1+$device_h +$margin + $title_h
         # 設定模式
         $Nomal = $true
         if ($MaxWindows -or $Define) {$Nomal = $false}
@@ -106,7 +110,7 @@ function rdpConnect {
     Set-Content $rdp_path $rdp
     Set-Clipboard $Password
     Start-Process $rdp_path
-}
+} # rdpConnect 192.168.3.12 -Zoom:1.5
 
 function Install {
     param (

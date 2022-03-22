@@ -3,10 +3,13 @@ function rdpConnect {
     param (
         [Parameter(Mandatory, Position = 0, ParameterSetName = "")]
         [string] $IP,
-        [Parameter(Position = 1, ParameterSetName = "")]
-        [String] $Password,
+        [Parameter(Position = 1, ParameterSetName = "A")]
+        [Parameter(Position = 1, ParameterSetName = "B")]
+        [Parameter(Position = 1, ParameterSetName = "C")]
+        [Parameter(ParameterSetName = "D")]
+        [String] $PasswordCopy,
         # 傻瓜包
-        [Parameter(Position = 2, ParameterSetName = "A")]
+        [Parameter(ParameterSetName = "A")]
         [double] $Ratio = 16/11,
         [Parameter(ParameterSetName = "A")] # 預設模式
         [switch] $Nomal,
@@ -17,13 +20,13 @@ function rdpConnect {
         [Parameter(ParameterSetName = "D")] # 可選3 (自動解析度與位置)
         [switch] $Define,
         # 自訂模式
-        [Parameter(Position = 2, ParameterSetName = "D")]
+        [Parameter(Position = 1, ParameterSetName = "D")]
         [uint64] $device_w = 0,
-        [Parameter(Position = 3, ParameterSetName = "D")]
+        [Parameter(Position = 2, ParameterSetName = "D")]
         [uint64] $device_h = 0,
-        [Parameter(Position = 4, ParameterSetName = "D")]
+        [Parameter(Position = 3, ParameterSetName = "D")]
         [uint64] $x1 = 0,
-        [Parameter(Position = 5, ParameterSetName = "D")]
+        [Parameter(Position = 4, ParameterSetName = "D")]
         [uint64] $y1 = 0,
         # 螢幕縮放
         [Parameter(ParameterSetName = "")]
@@ -107,14 +110,15 @@ function rdpConnect {
         $rdp = $rdp.Replace('${y2}'     ,$y2)
     }
     
-    
     # 儲存 rdp 檔案並開啟
     $rdp_path = "$env:TEMP\Default.rdp"
     Set-Content $rdp_path $rdp
-    Set-Clipboard $Password
+    if($PasswordCopy) { Set-Clipboard $PasswordCopy }
     Start-Process $rdp_path
 } 
 # rdpConnect 192.168.3.12 -Zoom:1.5
+# rdpConnect 192.168.3.12 'pwcopy' -Zoom:1.5
+# rdpConnect 192.168.3.12 -Ratio:1.1 -Zoom:1.5
 # rdpConnect 192.168.3.12 -FullScreen -Zoom:1.5
 # rdpConnect 192.168.3.12 -MaxWindows -Zoom:1.5
 # rdpConnect 192.168.3.12 -Define 1024 768 100 100 -Zoom:1.5

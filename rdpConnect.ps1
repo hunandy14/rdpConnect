@@ -32,26 +32,29 @@ function rdpConnect {
         [Parameter(ParameterSetName = "")]
         [double] $Zoom = 1.0
     )
+    # 獲取當前位置
+    if ($PSScriptRoot) { $curDir = $PSScriptRoot } else { $curDir = (Get-Location).Path }
     # 獲取螢幕解析度
     Add-Type -AssemblyName System.Windows.Forms
+
     # 設置參數
     [string] $ip      = $IP
     [double] $width   = $Zoom * [System.Windows.Forms.SystemInformation]::PrimaryMonitorSize.width
     [double] $height  = $Zoom * [System.Windows.Forms.SystemInformation]::PrimaryMonitorSize.height
     # [uint64] $x1      = 0
     # [uint64] $y1      = 0
-    
+
     # 獲取樣板文件
-    $template_path = "$env:TEMP\Template.rdp"
+    # $template_path = "$env:TEMP\Template.rdp"
+    $template_path = "$curDir\Template.rdp"
     if (Test-Path $template_path -PathType:Leaf) {
         $rdp = Get-Content $template_path
     } else {
-        # $rdp = Get-Content 'Template.rdp'
         $rdp = Invoke-RestMethod 'raw.githubusercontent.com/hunandy14/rdpConnect/master/Template.rdp'
         Set-Content $template_path $rdp
     }
-    
-    
+
+
     # 選擇模式
     if ($FullScreen) {
         # 設置 rdp 檔案
@@ -72,12 +75,12 @@ function rdpConnect {
         [double] $margin2    = $Zoom*14 +2.0
         $margin1 = [Math]::Round($margin1, 0, [MidpointRounding]::AwayFromZero)
         $margin2 = [Math]::Round($margin2, 0, [MidpointRounding]::AwayFromZero)
-        
+
         [uint64] $title_h    = $Zoom *30.0
         [uint64] $star_h     = $Zoom *40.0
         [uint64] $width_max  = $width - $margin2
         [uint64] $height_max = $height - ($title_h+$star_h + $margin2)
-        
+
         # 遠端裝置解析度
         if ($device_w -eq 0) { $device_w = $width_max }
         if ($device_h -eq 0) { $device_h = $height_max }
@@ -109,13 +112,15 @@ function rdpConnect {
         $rdp = $rdp.Replace('${x2}'     ,$x2)
         $rdp = $rdp.Replace('${y2}'     ,$y2)
     }
-    
+
     # 儲存 rdp 檔案並開啟
     $rdp_path = "$env:TEMP\Default.rdp"
+    if($PasswordCopy) {
+        if ((Get-Clipboard) -ne $PasswordCopy) { Set-Clipboard $PasswordCopy }
+    }
     Set-Content $rdp_path $rdp
-    if($PasswordCopy) { Set-Clipboard $PasswordCopy }
     Start-Process $rdp_path
-} 
+}
 # rdpConnect 192.168.3.12 -Zoom:1.5
 # rdpConnect 192.168.3.12 'pwcopy' -Zoom:1.5
 # rdpConnect 192.168.3.12 -Ratio:1.1 -Zoom:1.5
@@ -132,12 +137,12 @@ function Install {
     if (!(Test-Path -Path $PROFILE )) {
         New-Item -Type File -Path $PROFILE -Force
     } $Dir = (Get-Item $PROFILE).Directory
-        
+
     # 下載ps1到[啟動文件]
     $URL  = "raw.githubusercontent.com/hunandy14/rdpConnect/master/rdpConnect.ps1"
     $File = "$Dir\rdpConnect.ps1"
     Invoke-WebRequest $URL -OutFile:$File
-    
+
     # 寫入[啟動文件]
     $impt = "Import-Module rdpConnect.ps1"
     if ($ForceAppend) {

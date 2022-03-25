@@ -163,8 +163,7 @@ function Download {
     Invoke-WebRequest 'bit.ly/36tr1aS' -OutFile:'rdpConnect.ps1'
     $ct = "SET IP=$IP
 SET PW=$PW
-: pwsh -Command `"&{irm bit.ly/36tr1aS|iex; rdpConnect %IP% %PW%}`"
-pwsh -Command `"&{Import-Module %~dp0rdpConnect.ps1; rdpConnect %IP% %PW%}`"
+`"C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe`" -Command `"&{Import-Module %~dp0rdpConnect.ps1; rdpConnect %IP% %PW%}`"
 "
-    $ct > rdp1.bat
+    Set-Content 'rdp1.bat' $ct
 } # Download '192.168.3.12' '123456'

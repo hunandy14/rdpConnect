@@ -157,13 +157,22 @@ function Install {
 
 function Download {
     param (
+        [Parameter(Position = 0, ParameterSetName = "")]
         [string] $IP = '192.168.1.1',
-        [string] $PW = ''
+        [Parameter(Position = 1, ParameterSetName = "")]
+        [string] $PW = '',
+        [Parameter(ParameterSetName = "")]
+        [double] $Zoom = 1.0
     )
-    Invoke-WebRequest 'bit.ly/36tr1aS' -OutFile:'rdpConnect.ps1'
+    # 載入函式
+    irm bit.ly/3pkjAtp|iex; 
+    
+    (Invoke-RestMethod 'bit.ly/36tr1aS')|WriteContent 'rdpConnect.ps1' -DefaultEncoding
     $ct = "SET IP=$IP
 SET PW=$PW
-`"C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe`" -Command `"&{Import-Module %~dp0rdpConnect.ps1; rdpConnect %IP% %PW%}`"
+SET ZM=$Zoom
+: pwsh -Command `"&{irm bit.ly/36tr1aS|iex; rdpConnect %IP% %PW%}`"
+pwsh -Command `"&{Import-Module %~dp0rdpConnect.ps1; rdpConnect %IP% %PW% -Zoom:%ZM%}`"
 "
-    Set-Content 'rdp1.bat' $ct
-} # Download '192.168.3.12' '123456'
+    $ct|WriteContent 'rdp1.bat' -DefaultEncoding
+} # Download '192.168.3.12' '123456' -Zoom:1.5

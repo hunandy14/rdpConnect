@@ -42,7 +42,7 @@ irm bit.ly/36tr1aS|iex; rdpConnect 192.168.3.12 '123456' -Ratio:(16/11) -Zoom:1.
 ### 離線使用
 下載到當前目錄
 ```ps1
-irm bit.ly/36tr1aS|iex; Download '192.168.3.12' '123456' -Ratio:(16/11) -Zoom:1.0
+irm bit.ly/36tr1aS|iex; Download '192.168.3.12' '123456' -Ratio:(16/11) -Zoom:1.0 -OutName:'rdpServer1'
 ```
 
 ### 簡介

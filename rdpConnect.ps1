@@ -162,6 +162,8 @@ function Download {
         [Parameter(Position = 1, ParameterSetName = "")]
         [string] $PW = '',
         [Parameter(ParameterSetName = "")]
+        [double] $Ratio = (16/11),
+        [Parameter(ParameterSetName = "")]
         [double] $Zoom = 1.0
     )
     # 載入函式
@@ -171,8 +173,9 @@ function Download {
     $ct = "SET IP=$IP
 SET PW=$PW
 SET ZM=$Zoom
+SET RA=$Ratio
 : pwsh -Command `"&{irm bit.ly/36tr1aS|iex; rdpConnect %IP% %PW%}`"
-pwsh -Command `"&{Import-Module %~dp0rdpConnect.ps1; rdpConnect %IP% %PW% -Zoom:%ZM%}`"
+pwsh -Command `"&{Import-Module %~dp0rdpConnect.ps1; rdpConnect %IP% %PW% -Ratio:%RA% -Zoom:%ZM%}`"
 "
     $ct|WriteContent 'rdp1.bat' -DefaultEncoding
-} # Download '192.168.3.12' '123456' -Zoom:1.5
+} # Download '192.168.3.12' '123456' -Ratio:(16/11) -Zoom:1.5

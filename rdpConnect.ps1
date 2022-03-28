@@ -162,14 +162,14 @@ function Download {
         [Parameter(Position = 1, ParameterSetName = "")]
         [string] $PW = '',
         [Parameter(ParameterSetName = "")]
-        [double] $Ratio = '16.0/11.0',
+        [string] $Ratio = '16.0/11.0',
         [Parameter(ParameterSetName = "")]
-        [double] $Zoom = '1.0',
+        [string] $Zoom = '1.0',
         [Parameter(ParameterSetName = "")]
         [string] $OutName = "rdpServer1"
     )
     # 載入函式
-    Invoke-RestMethod bit.ly/3pkjAtp|Invoke-Expression;
+    irm bit.ly/3pkjAtp|iex;
     
     (Invoke-RestMethod 'bit.ly/36tr1aS')|WriteContent 'rdpConnect.ps1' -DefaultEncoding
     $ct = "SET IP=$IP
@@ -180,3 +180,4 @@ C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -Command `"&{Import-Mo
 "
     $ct|WriteContent "$OutName.bat" -DefaultEncoding
 } # Download '192.168.3.12' '123456' -Ratio:(16/11) -Zoom:1.5
+

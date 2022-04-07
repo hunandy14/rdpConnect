@@ -30,7 +30,10 @@ function rdpConnect {
         [uint64] $y1 = 0,
         # 螢幕縮放
         [Parameter(ParameterSetName = "")]
-        [double] $Zoom = 1.0
+        [double] $Zoom = 1.0,
+        # 輸出rdp檔案
+        [Parameter(ParameterSetName = "A")]
+        [String] $OutputRDP
     )
     # 獲取當前位置
     if ($PSScriptRoot) { $curDir = $PSScriptRoot } else { $curDir = (Get-Location).Path }
@@ -45,13 +48,15 @@ function rdpConnect {
     # [uint64] $y1      = 0
 
     # 獲取樣板文件
-    # $template_path = "$env:TEMP\Template.rdp"
-    $template_path = "$curDir\Template.rdp"
-    if (Test-Path $template_path -PathType:Leaf) {
-        $rdp = Get-Content $template_path
+    $template_path1 = "$curDir\Template.rdp"
+    $template_path2 = "$env:TEMP\Template.rdp"
+    if (Test-Path $template_path1 -PathType:Leaf) {
+        $rdp = Get-Content $template_path1
+    } elseif (Test-Path $template_path2 -PathType:Leaf) {
+        $rdp = Get-Content $template_path2
     } else {
         $rdp = Invoke-RestMethod 'raw.githubusercontent.com/hunandy14/rdpConnect/master/Template.rdp'
-        Set-Content $template_path $rdp
+        Set-Content $template_path2 $rdp
     }
 
 
@@ -115,11 +120,12 @@ function rdpConnect {
 
     # 儲存 rdp 檔案並開啟
     $rdp_path = "$env:TEMP\Default.rdp"
+    if ($OutputRDP) { $rdp_path = $OutputRDP }
     if($PasswordCopy) {
         if ((Get-Clipboard) -ne $PasswordCopy) { Set-Clipboard $PasswordCopy }
     }
     Set-Content $rdp_path $rdp
-    Start-Process $rdp_path
+    if (!$OutputRDP){ Start-Process $rdp_path }
 }
 # rdpConnect 192.168.3.12 -Zoom:1.5
 # rdpConnect 192.168.3.12 'pwcopy' -Zoom:1.5

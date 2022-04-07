@@ -29,6 +29,9 @@ rdpConnect 192.168.3.12 -FullScreen
 rdpConnect 192.168.3.12 -MaxWindows
 # 自訂解析度與位置(長, 高 ,x ,y)
 rdpConnect 192.168.3.12 -Define 1024 768 100 100
+
+# 輸出 rdp 檔案
+rdpConnect 192.168.3.12 -OutputRDP:"Default.rdp"
 ```
 
 範例

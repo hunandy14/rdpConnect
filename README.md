@@ -29,9 +29,6 @@ rdpConnect 192.168.3.12 -FullScreen
 rdpConnect 192.168.3.12 -MaxWindows
 # 自訂解析度與位置(長, 高 ,x ,y)
 rdpConnect 192.168.3.12 -Define 1024 768 100 100
-
-# 輸出 rdp 檔案
-rdpConnect 192.168.3.12 -OutputRDP:"Default.rdp"
 ```
 
 範例
@@ -43,9 +40,12 @@ irm bit.ly/36tr1aS|iex; rdpConnect 192.168.3.12 '123456' -Ratio:(16/11) -Zoom:1.
 ```
 
 ### 離線使用
-下載到當前目錄
 ```ps1
+# 輸出 bat 與 ps1 檔案 (執行時可隨著不同螢幕大小調整rdp內容)
 irm bit.ly/36tr1aS|iex; Download '192.168.3.12' '123456' -Ratio:(16/11) -Zoom:1.0 -OutName:'rdpServer1'
+
+# 輸出 rdp 檔案 (寫死的rdp)
+irm bit.ly/36tr1aS|iex; rdpConnect 192.168.3.12 -OutputRDP:"Default.rdp"
 ```
 
 ### 簡介

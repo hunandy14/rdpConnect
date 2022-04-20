@@ -175,11 +175,11 @@ function Download {
         [string] $OutName = "rdpServer1"
     )
     # 載入函式
-    Invoke-RestMethod bit.ly/3pkjAtp|Invoke-Expression;
+    (Invoke-RestMethod 'raw.githubusercontent.com/hunandy14/cvEncode/master/cvEncoding.ps1')|Invoke-Expression;
     $pwsh = "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe" 
     $en = (C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -Command '&{[Text.Encoding]::Default.WindowsCodePage}')
     
-    (Invoke-RestMethod 'bit.ly/36tr1aS')|WriteContent 'rdpConnect.ps1' -Encoding:$en
+    (Invoke-RestMethod 'raw.githubusercontent.com/hunandy14/rdpConnect/master/rdpConnect.ps1')|WriteContent 'rdpConnect.ps1' -Encoding:$en
 $ct = "SET IP=192.168.3.12
 SET PW=
 SET RA=16.0/11.0

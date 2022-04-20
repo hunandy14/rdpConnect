@@ -15,6 +15,7 @@ C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -Command "&{irm bit.ly
 ### 詳細使用範例
 ```ps1
 # 載入函式庫
+irm 'raw.githubusercontent.com/hunandy14/rdpConnect/master/rdpConnect.ps1'|iex
 irm bit.ly/36tr1aS|iex
 
 # 自動複製密碼到剪貼簿 (可為空或忽略-P)

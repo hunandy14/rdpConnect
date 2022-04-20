@@ -194,7 +194,7 @@ SET ZM=$Zoom
 
 SET CMD=`"Import-Module %~dp0rdpConnect\rdpConnect.ps1; rdpConnect %IP% %PW% -Ratio:(%RA%) -Zoom:%ZM%`"
 
-$Pwsh_Path -Command `"&{%CMD%}`""
+`"$Pwsh_Path`" -Command `"&{%CMD%}`""
     
     # 輸出BAT檔案
     $ct|WriteContent "$OutName.bat" -Encoding:$en

@@ -178,14 +178,17 @@ function Download {
     (Invoke-RestMethod 'raw.githubusercontent.com/hunandy14/cvEncode/master/cvEncoding.ps1')|Invoke-Expression;
     $pwsh = "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe" 
     $en = (C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -Command '&{[Text.Encoding]::Default.WindowsCodePage}')
+    # 下載離線包
+    (Invoke-RestMethod 'raw.githubusercontent.com/hunandy14/rdpConnect/master/rdpConnect.ps1')|WriteContent 'rdpConnect\rdpConnect.ps1' -Encoding:$en
+    (Invoke-RestMethod 'raw.githubusercontent.com/hunandy14/rdpConnect/master/Template.rdp')|WriteContent 'rdpConnect\Template.rdp' -Encoding:$en
     
-    (Invoke-RestMethod 'raw.githubusercontent.com/hunandy14/rdpConnect/master/rdpConnect.ps1')|WriteContent 'rdpConnect.ps1' -Encoding:$en
-$ct = "SET IP=192.168.3.12
-SET PW=
-SET RA=16.0/11.0
-SET ZM=1.0
+    # BAT檔案內容
+    $ct = "SET IP=$IP
+SET PW=$PW
+SET RA=$Ratio
+SET ZM=$Zoom
 
-SET CMD=`"Import-Module %~dp0rdpConnect.ps1; rdpConnect %IP% %PW% -Ratio:(%RA%) -Zoom:%ZM%`"
+SET CMD=`"Import-Module %~dp0rdpConnect\rdpConnect.ps1; rdpConnect %IP% %PW% -Ratio:(%RA%) -Zoom:%ZM%`"
 
 C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -Command `"&{%CMD%}`""
     $ct|WriteContent "$OutName.bat" -Encoding:$en

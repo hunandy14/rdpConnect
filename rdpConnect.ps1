@@ -172,11 +172,15 @@ function Download {
         [Parameter(ParameterSetName = "")]
         [string] $Zoom = '1.0',
         [Parameter(ParameterSetName = "")]
-        [string] $OutName = "rdpServer1"
+        [string] $OutName = "rdpServer1",
+        [Parameter(ParameterSetName = "")]
+        [switch] $Pwsh7
     )
+    # Pswh版本
+    $Pwsh_Path = "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe" 
+    if ($Pwsh7) { $Pwsh_Path = "C:\Program Files\PowerShell\7\pwsh.exe" }
     # 載入函式
     (Invoke-RestMethod 'raw.githubusercontent.com/hunandy14/cvEncode/master/cvEncoding.ps1')|Invoke-Expression;
-    $pwsh = "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe" 
     $en = (C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -Command '&{[Text.Encoding]::Default.WindowsCodePage}')
     # 下載離線包
     (Invoke-RestMethod 'raw.githubusercontent.com/hunandy14/rdpConnect/master/rdpConnect.ps1')|WriteContent 'rdpConnect\rdpConnect.ps1' -Encoding:$en
@@ -190,7 +194,9 @@ SET ZM=$Zoom
 
 SET CMD=`"Import-Module %~dp0rdpConnect\rdpConnect.ps1; rdpConnect %IP% %PW% -Ratio:(%RA%) -Zoom:%ZM%`"
 
-C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -Command `"&{%CMD%}`""
+$Pwsh_Path -Command `"&{%CMD%}`""
+    
+    # 輸出BAT檔案
     $ct|WriteContent "$OutName.bat" -Encoding:$en
 } # Download '192.168.3.12' '123456' -Ratio:(16/11) -Zoom:1.5
 

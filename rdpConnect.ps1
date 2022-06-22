@@ -91,8 +91,8 @@ function rdpConnect {
         if ($device_h -eq 0) { $device_h = $height_max }
         # $width_max
         # $height_max
-        [uint64] $x2 = $x1+$device_w +$margin2
-        [uint64] $y2 = $y1+$device_h +$margin2 + $title_h
+        [int64] $x2 = $x1+$device_w +$margin2
+        [int64] $y2 = $y1+$device_h +$margin2 + $title_h
         # 設定模式
         $Nomal = $true
         if ($MaxWindows -or $Define) {$Nomal = $false}

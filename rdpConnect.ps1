@@ -25,9 +25,9 @@ function rdpConnect {
         [Parameter(Position = 2, ParameterSetName = "D")]
         [int64] $device_h = 0,
         [Parameter(Position = 3, ParameterSetName = "D")]
-        [uint64] $x1 = 0,
+        [int64] $x1 = 0,
         [Parameter(Position = 4, ParameterSetName = "D")]
-        [uint64] $y1 = 0,
+        [int64] $y1 = 0,
         # 螢幕縮放
         [Parameter(ParameterSetName = "")]
         [double] $Zoom = 1.0,
@@ -44,8 +44,8 @@ function rdpConnect {
     [string] $ip      = $IP
     [double] $width   = $Zoom * [System.Windows.Forms.SystemInformation]::PrimaryMonitorSize.width
     [double] $height  = $Zoom * [System.Windows.Forms.SystemInformation]::PrimaryMonitorSize.height
-    # [uint64] $x1      = 0
-    # [uint64] $y1      = 0
+    # [int64] $x1      = 0
+    # [int64] $y1      = 0
 
     # 獲取樣板文件
     $template_path1 = "$curDir\Template.rdp"
@@ -81,10 +81,10 @@ function rdpConnect {
         $margin1 = [Math]::Round($margin1, 0, [MidpointRounding]::AwayFromZero)
         $margin2 = [Math]::Round($margin2, 0, [MidpointRounding]::AwayFromZero)
 
-        [uint64] $title_h    = $Zoom *30.0
-        [uint64] $star_h     = $Zoom *40.0
-        [uint64] $width_max  = $width - $margin2
-        [uint64] $height_max = $height - ($title_h+$star_h + $margin2)
+        [int64] $title_h    = $Zoom *30.0
+        [int64] $star_h     = $Zoom *40.0
+        [int64] $width_max  = $width - $margin2
+        [int64] $height_max = $height - ($title_h+$star_h + $margin2)
 
         # 遠端裝置解析度
         if ($device_w -eq 0) { $device_w = $width_max }

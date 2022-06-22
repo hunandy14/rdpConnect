@@ -21,9 +21,9 @@ function rdpConnect {
         [switch] $Define,
         # 自訂模式
         [Parameter(Position = 1, ParameterSetName = "D")]
-        [uint64] $device_w = 0,
+        [int64] $device_w = 0,
         [Parameter(Position = 2, ParameterSetName = "D")]
-        [uint64] $device_h = 0,
+        [int64] $device_h = 0,
         [Parameter(Position = 3, ParameterSetName = "D")]
         [uint64] $x1 = 0,
         [Parameter(Position = 4, ParameterSetName = "D")]

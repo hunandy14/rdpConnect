@@ -5,6 +5,9 @@
 1. 解析度可以自訂或自動調整到適當的大小，避免每次打開都會出現卷軸實在很煩。
 2. 對於企業電腦無法儲存密碼的也提供一個變相的解決方案，在打開的時候自動複製指定密碼到剪貼簿。
 
+
+<br><br><br>
+
 # 簡易使用說明
 自動連上並複製密碼到剪貼簿
 ```ps1
@@ -15,6 +18,9 @@ bat文件用法
 ```bat
 C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -Command "&{irm bit.ly/36tr1aS|iex; rdpConnect '192.168.3.12' '123456' -Ratio:(16/11)}"
 ```
+
+
+<br><br><br>
 
 # 詳細使用範例
 ```ps1
@@ -33,6 +39,9 @@ rdpConnect 192.168.3.12 -MaxWindows
 # 自訂解析度與位置(長, 高 ,x ,y)
 rdpConnect 192.168.3.12 -Define 1024 768 100 100
 ```
+
+
+<br><br><br>
 
 # 使用csv管理多個伺服器登入資訊
 使用方法
@@ -55,6 +64,9 @@ Set IMP=iex (irm bit.ly/36tr1aS)
 Set CMD=rdpMgr '%CsvFile%'
 start pwsh.exe -WindowStyle Minimized -Command "& {%IMP%;%CMD%;}"
 ```
+
+
+<br><br><br>
 
 # 離線使用
 ```ps1

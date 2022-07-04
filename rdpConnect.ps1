@@ -262,7 +262,10 @@ function rdpMgr {
         [Parameter(ParameterSetName = "")]
         [switch] $FullScreen,
         [Parameter(ParameterSetName = "")]
-        [switch] $EditList
+        [switch] $EditList,
+        [Parameter(ParameterSetName = "")]
+        [string] $Encoding
+        
     )
     if ($EditList) {
         notepad.exe $Path
@@ -275,7 +278,8 @@ function rdpMgr {
             $Path = 'rdpList.csv'
         }
     }
-    $list = Import-Csv $Path -Encoding:UTF8 # Unicode,UTF7,UTF8,ASCII,UTF32,BigEndianUnicode,Default,OEM
+    if (!$Encoding) { $Encoding='Default' } # Unicode,UTF7,UTF8,ASCII,UTF32,BigEndianUnicode,Default,OEM
+    $list = Import-Csv $Path -Encoding:$Encoding
     $Serv = $list | Out-GridView -PassThru -Title:'rdpConnect'
     
     if ($Serv) {

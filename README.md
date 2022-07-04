@@ -8,12 +8,12 @@
 # 簡易使用說明
 自動連上並複製密碼到剪貼簿
 ```ps1
-irm bit.ly/36tr1aS|iex; rdpConnect '192.168.3.12' '123456' -Ratio:(16/11) -Zoom:1.0
+irm bit.ly/36tr1aS|iex; rdpConnect '192.168.3.12' '123456' -Ratio:(16/11)
 ```
 
 bat文件用法
 ```bat
-C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -Command "&{irm bit.ly/36tr1aS|iex; rdpConnect '192.168.3.12' '123456' -Ratio:(16/11) -Zoom:1.0}"
+C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -Command "&{irm bit.ly/36tr1aS|iex; rdpConnect '192.168.3.12' '123456' -Ratio:(16/11)}"
 ```
 
 # 詳細使用範例
@@ -24,8 +24,6 @@ irm bit.ly/36tr1aS|iex
 
 # 自動複製密碼到剪貼簿 (可為空或忽略-P)
 rdpConnect 192.168.3.12 -PasswordCopy:'123456'
-# 指定螢幕縮放為1.5倍 (預設1.0)
-rdpConnect 192.168.3.12 -Zoom:1.5
 # 設定解析度長寬比例(預設是16:11)
 rdpConnect 192.168.3.12 -Ratio:(16/11)
 # 全螢連接
@@ -34,14 +32,6 @@ rdpConnect 192.168.3.12 -FullScreen
 rdpConnect 192.168.3.12 -MaxWindows
 # 自訂解析度與位置(長, 高 ,x ,y)
 rdpConnect 192.168.3.12 -Define 1024 768 100 100
-```
-
-範例
-```ps1
-# 在放大倍率100%的電腦上, 調整縮放比為16:11, 自動複製密碼123456
-irm bit.ly/36tr1aS|iex; rdpConnect 192.168.3.12 '123456'
-# 在放大倍率150%的電腦上, 調整縮放比為16:11, 自動複製密碼123456
-irm bit.ly/36tr1aS|iex; rdpConnect 192.168.3.12 '123456' -Ratio:(16/11) -Zoom:1.5
 ```
 
 # 使用csv管理多個伺服器登入資訊
@@ -69,7 +59,7 @@ start pwsh.exe -WindowStyle Minimized -Command "& {%IMP%;%CMD%;}"
 # 離線使用
 ```ps1
 # 輸出 bat 與 ps1 檔案 (執行時可隨著不同螢幕大小調整rdp內容)
-irm bit.ly/36tr1aS|iex; Download '192.168.3.12' '123456' -Ratio:(16/11) -Zoom:1.0 -OutName:'rdpServer1'
+irm bit.ly/36tr1aS|iex; Download '192.168.3.12' '123456' -Ratio:(16/11) -OutName:'rdpServer1'
 
 # 輸出 rdp 檔案 (寫死的rdp)
 irm bit.ly/36tr1aS|iex; rdpConnect 192.168.3.12 -OutputRDP:"Default.rdp"

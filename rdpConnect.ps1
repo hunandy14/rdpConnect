@@ -1,5 +1,7 @@
 # 獲取螢幕解析度
+$__GetScrenInfoFlag__
 function GetScrenInfo {
+    if (!$__GetScrenInfoFlag__) {
     Add-Type -TypeDefinition:@"
 using System;
 using System.Runtime.InteropServices;
@@ -8,6 +10,8 @@ public class PInvoke {
     [DllImport("gdi32.dll")] public static extern int GetDeviceCaps(IntPtr hdc, int nIndex);
 }
 "@
+    } $__GetScrenInfoFlag__ = $true
+    
     $hdc = [PInvoke]::GetDC([IntPtr]::Zero)
     $Width   = [PInvoke]::GetDeviceCaps($hdc, 118)
     $Height  = [PInvoke]::GetDeviceCaps($hdc, 117)
@@ -252,7 +256,7 @@ SET CMD=`"Import-Module %~dp0rdpConnect\rdpConnect.ps1; rdpConnect %IP% %PW% -Ra
 function rdpMgr {
     param (
         [Parameter(ParameterSetName = "")]
-        [string] $Path='rdpList.csv',
+        [string] $Path,
         [Parameter(ParameterSetName = "")]
         [double] $Ratio = 16/11,
         [Parameter(ParameterSetName = "")]
@@ -263,6 +267,13 @@ function rdpMgr {
     if ($EditList) {
         notepad.exe $Path
         return
+    }
+    if (!$Path) {
+        if  ($PSScriptRoot){
+            $Path = "$PSScriptRoot\rdpList.csv"
+        } else {
+            $Path = 'rdpList.csv'
+        }
     }
     $list = Import-Csv $Path -Encoding:([System.Text.Encoding]::GetEncoding(932))
     $Serv = $list | Out-GridView -PassThru -Title:'rdpConnect'

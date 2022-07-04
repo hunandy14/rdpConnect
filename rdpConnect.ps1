@@ -246,3 +246,28 @@ SET CMD=`"Import-Module %~dp0rdpConnect\rdpConnect.ps1; rdpConnect %IP% %PW% -Ra
     $ct|WriteContent "$OutName.bat" -Encoding:$en
 } # Download '192.168.3.12' '123456' -Ratio:(16/11) -Zoom:1.5
 
+
+
+# 儲存管理多個rdp清單
+function rdpMgr {
+    param (
+        [Parameter(ParameterSetName = "")]
+        [string] $Path='rdpList.csv',
+        [Parameter(ParameterSetName = "")]
+        [double] $Ratio = 16/11,
+        [Parameter(ParameterSetName = "")]
+        [switch] $FullScreen,
+        [Parameter(ParameterSetName = "")]
+        [switch] $EditList
+    )
+    if ($EditList) {
+        notepad.exe $Path
+        return
+    }
+    $list = Import-Csv $Path -Encoding:([System.Text.Encoding]::GetEncoding(932))
+    $Serv = $list | Out-GridView -PassThru -Title:'rdpConnect'
+    
+    if ($Serv) {
+        rdpConnect $Serv.IP -PasswordCopy:$Serv.PW -Ratio:$Ratio
+    }
+} # rdpMgr

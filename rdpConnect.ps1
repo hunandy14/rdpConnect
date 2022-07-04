@@ -264,7 +264,7 @@ function rdpMgr {
         [Parameter(ParameterSetName = "")]
         [switch] $EditList,
         [Parameter(ParameterSetName = "")]
-        [string] $Encoding
+        [System.Object] $Encoding
         
     )
     if ($EditList) {

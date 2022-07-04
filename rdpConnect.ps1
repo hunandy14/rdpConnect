@@ -275,7 +275,7 @@ function rdpMgr {
             $Path = 'rdpList.csv'
         }
     }
-    $list = Import-Csv $Path -Encoding:([System.Text.Encoding]::GetEncoding(932))
+    $list = Import-Csv $Path -Encoding:UTF8 # Unicode,UTF7,UTF8,ASCII,UTF32,BigEndianUnicode,Default,OEM
     $Serv = $list | Out-GridView -PassThru -Title:'rdpConnect'
     
     if ($Serv) {

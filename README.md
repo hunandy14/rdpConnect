@@ -62,7 +62,7 @@ Set CsvFile=C:\サーバ接続情報.csv
 rem Set IMP=Import-Module W:\RdpServer\rdpConnect\rdpConnect.ps1
 Set IMP=iex (irm bit.ly/36tr1aS)
 Set CMD=rdpMgr '%CsvFile%'
-start pwsh.exe -WindowStyle Minimized -Command "& {%IMP%;%CMD%;}"
+start pwsh.exe -WindowStyle Minimized -Command "& {%IMP%;%CMD%;Exit}" -NoExit 
 ```
 
 

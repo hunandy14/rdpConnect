@@ -1,7 +1,11 @@
 微軟遠端連線自訂解析度與自動複製密碼到剪貼簿
 ===
+# 簡介
+主要解決的問題
+1. 解析度可以自訂或自動調整到適當的大小，避免每次打開都會出現卷軸實在很煩。
+2. 對於企業電腦無法儲存密碼的也提供一個變相的解決方案，在打開的時候自動複製指定密碼到剪貼簿。
 
-### 簡易使用說明
+# 簡易使用說明
 自動連上並複製密碼到剪貼簿
 ```ps1
 irm bit.ly/36tr1aS|iex; rdpConnect '192.168.3.12' '123456' -Ratio:(16/11) -Zoom:1.0
@@ -12,7 +16,7 @@ bat文件用法
 C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -Command "&{irm bit.ly/36tr1aS|iex; rdpConnect '192.168.3.12' '123456' -Ratio:(16/11) -Zoom:1.0}"
 ```
 
-### 詳細使用範例
+# 詳細使用範例
 ```ps1
 # 載入函式庫
 irm 'raw.githubusercontent.com/hunandy14/rdpConnect/master/rdpConnect.ps1'|iex
@@ -40,7 +44,7 @@ irm bit.ly/36tr1aS|iex; rdpConnect 192.168.3.12 '123456'
 irm bit.ly/36tr1aS|iex; rdpConnect 192.168.3.12 '123456' -Ratio:(16/11) -Zoom:1.5
 ```
 
-### 使用csv管理多個伺服器登入資訊
+# 使用csv管理多個伺服器登入資訊
 使用方法
 ```ps1
 irm bit.ly/36tr1aS|iex; rdpMgr 'rdpList.csv'
@@ -62,7 +66,7 @@ Set CMD=rdpMgr '%CsvFile%'
 start pwsh.exe -WindowStyle Minimized -Command "& {%IMP%;%CMD%;}"
 ```
 
-### 離線使用
+# 離線使用
 ```ps1
 # 輸出 bat 與 ps1 檔案 (執行時可隨著不同螢幕大小調整rdp內容)
 irm bit.ly/36tr1aS|iex; Download '192.168.3.12' '123456' -Ratio:(16/11) -Zoom:1.0 -OutName:'rdpServer1'
@@ -70,8 +74,3 @@ irm bit.ly/36tr1aS|iex; Download '192.168.3.12' '123456' -Ratio:(16/11) -Zoom:1.
 # 輸出 rdp 檔案 (寫死的rdp)
 irm bit.ly/36tr1aS|iex; rdpConnect 192.168.3.12 -OutputRDP:"Default.rdp"
 ```
-
-### 簡介
-主要解決的問題
-1. 解析度可以自訂或自動調整到適當的大小，避免每次打開都會出現卷軸實在很煩。
-2. 對於企業電腦無法儲存密碼的也提供一個變相的解決方案，在打開的時候自動複製指定密碼到剪貼簿。

@@ -1,7 +1,7 @@
 # 獲取螢幕解析度
-$__GetScrenInfoFlag__
-function GetScrenInfo {
-    if (!$__GetScrenInfoFlag__) {
+$__GetScreenInfoFlag__
+function GetScreenInfo {
+    if (!$__GetScreenInfoFlag__) {
     Add-Type -TypeDefinition:@"
 using System;
 using System.Runtime.InteropServices;
@@ -10,7 +10,7 @@ public class PInvoke {
     [DllImport("gdi32.dll")] public static extern int GetDeviceCaps(IntPtr hdc, int nIndex);
 }
 "@
-    } $__GetScrenInfoFlag__ = $true
+    } $__GetScreenInfoFlag__ = $true
     
     $hdc = [PInvoke]::GetDC([IntPtr]::Zero)
     $Width   = [PInvoke]::GetDeviceCaps($hdc, 118)
@@ -29,7 +29,7 @@ public class PInvoke {
         LogicalHeight = $LogicalHeight
         LogicalWeight = $LogicalWeight
     }
-}
+} $ScreenInfo = GetScreenInfo
 
 
 
@@ -74,13 +74,12 @@ function rdpConnect {
     # 獲取當前位置
     if ($PSScriptRoot) { $curDir = $PSScriptRoot } else { $curDir = (Get-Location).Path }
     # 獲取螢幕解析度
-    $ScrenInfo = GetScrenInfo
-    [double] $Zoom = $ScrenInfo.Scaling
+    [double] $Zoom = $ScreenInfo.Scaling
     
     # 設置參數
     [string] $ip      = $IP
-    [double] $width   = $ScrenInfo.Width
-    [double] $height  = $ScrenInfo.Height
+    [double] $width   = $ScreenInfo.Width
+    [double] $height  = $ScreenInfo.Height
     # [int64] $x1      = 0
     # [int64] $y1      = 0
 

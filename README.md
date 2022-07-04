@@ -40,6 +40,28 @@ irm bit.ly/36tr1aS|iex; rdpConnect 192.168.3.12 '123456'
 irm bit.ly/36tr1aS|iex; rdpConnect 192.168.3.12 '123456' -Ratio:(16/11) -Zoom:1.5
 ```
 
+### 使用csv管理多個伺服器登入資訊
+使用方法
+```ps1
+irm bit.ly/36tr1aS|iex; rdpMgr 'rdpList.csv'
+```
+
+rdpList.csv
+```csv
+Description,IP,AC,PW
+範例1,192.168.3.12,user,abc123
+```
+
+單一bat執行檔案
+```bat
+Set CsvFile=C:\サーバ接続情報.csv
+
+rem Set IMP=Import-Module W:\RdpServer\rdpConnect\rdpConnect.ps1
+Set IMP=iex (irm bit.ly/36tr1aS)
+Set CMD=rdpMgr '%CsvFile%'
+start pwsh.exe -WindowStyle Minimized -Command "& {%IMP%;%CMD%;}"
+```
+
 ### 離線使用
 ```ps1
 # 輸出 bat 與 ps1 檔案 (執行時可隨著不同螢幕大小調整rdp內容)

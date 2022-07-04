@@ -1,3 +1,35 @@
+# 獲取螢幕解析度
+function GetScrenInfo {
+    Add-Type -TypeDefinition:@"
+using System;
+using System.Runtime.InteropServices;
+public class PInvoke {
+    [DllImport("user32.dll")] public static extern IntPtr GetDC(IntPtr hwnd);
+    [DllImport("gdi32.dll")] public static extern int GetDeviceCaps(IntPtr hdc, int nIndex);
+}
+"@
+    $hdc = [PInvoke]::GetDC([IntPtr]::Zero)
+    $Width   = [PInvoke]::GetDeviceCaps($hdc, 118)
+    $Height  = [PInvoke]::GetDeviceCaps($hdc, 117)
+    $Refresh = [PInvoke]::GetDeviceCaps($hdc, 116)
+    $Scaling = [PInvoke]::GetDeviceCaps($hdc, 117) / [PInvoke]::GetDeviceCaps($hdc, 10)
+    $LogicalHeight =  [PInvoke]::GetDeviceCaps($hdc, 10)
+    $LogicalWeight =  [PInvoke]::GetDeviceCaps($hdc, 8)
+   
+    [pscustomobject]@{
+        Width         = $Width
+        Height        = $Height
+        Refresh       = $Refresh
+        # Scaling       = [Math]::Round($Scaling, 3)
+        Scaling       = $Scaling
+        LogicalHeight = $LogicalHeight
+        LogicalWeight = $LogicalWeight
+    }
+}
+
+
+
+# 連接到rdp遠端
 function rdpConnect {
     [CmdletBinding(DefaultParameterSetName = "A")]
     param (
@@ -38,12 +70,13 @@ function rdpConnect {
     # 獲取當前位置
     if ($PSScriptRoot) { $curDir = $PSScriptRoot } else { $curDir = (Get-Location).Path }
     # 獲取螢幕解析度
-    Add-Type -AssemblyName System.Windows.Forms
-
+    $ScrenInfo = GetScrenInfo
+    [double] $Zoom = $ScrenInfo.Scaling
+    
     # 設置參數
     [string] $ip      = $IP
-    [double] $width   = $Zoom * [System.Windows.Forms.SystemInformation]::PrimaryMonitorSize.width
-    [double] $height  = $Zoom * [System.Windows.Forms.SystemInformation]::PrimaryMonitorSize.height
+    [double] $width   = $ScrenInfo.Width
+    [double] $height  = $ScrenInfo.Height
     # [int64] $x1      = 0
     # [int64] $y1      = 0
 
@@ -58,7 +91,16 @@ function rdpConnect {
         $rdp = Invoke-RestMethod 'raw.githubusercontent.com/hunandy14/rdpConnect/master/Template.rdp'
         Set-Content $template_path2 $rdp
     }
-
+    
+    # 設置參數
+    [double] $margin1    = $Zoom*7
+    [double] $margin2    = $Zoom*14 +2.0
+    $margin1 = [Math]::Round($margin1, 0, [MidpointRounding]::AwayFromZero)
+    $margin2 = [Math]::Round($margin2, 0, [MidpointRounding]::AwayFromZero)
+    [int64] $title_h    = $Zoom *30.0
+    [int64] $star_h     = $Zoom *40.0
+    [int64] $x2 = $x1+$device_w +$margin2
+    [int64] $y2 = $y1+$device_h +$margin2 + $title_h
 
     # 選擇模式
     if ($FullScreen) {
@@ -74,19 +116,19 @@ function rdpConnect {
         $rdp = $rdp.Replace('screen mode id:i:1', 'screen mode id:i:2')
         $rdp = $rdp.Replace('connection type:i:7', 'connection type:i:3')
         $rdp = $rdp.Replace('authentication level:i:2', 'authentication level:i:0')
+    } elseif($Define) {
+        # 設置 rdp 檔案
+        $rdp = $rdp.Replace('${ip}'     ,$ip)
+        $rdp = $rdp.Replace('${width}'  ,$device_w)
+        $rdp = $rdp.Replace('${height}' ,$device_h)
+        $rdp = $rdp.Replace('${x1}'     ,$x1)
+        $rdp = $rdp.Replace('${y1}'     ,$y1)
+        $rdp = $rdp.Replace('${x2}'     ,$x2)
+        $rdp = $rdp.Replace('${y2}'     ,$y2)
     } else {
-        # 設置參數
-        [double] $margin1    = $Zoom*7
-        [double] $margin2    = $Zoom*14 +2.0
-        $margin1 = [Math]::Round($margin1, 0, [MidpointRounding]::AwayFromZero)
-        $margin2 = [Math]::Round($margin2, 0, [MidpointRounding]::AwayFromZero)
-
-        [int64] $title_h    = $Zoom *30.0
-        [int64] $star_h     = $Zoom *40.0
+        # 遠端裝置解析度
         [int64] $width_max  = $width - $margin2
         [int64] $height_max = $height - ($title_h+$star_h + $margin2)
-
-        # 遠端裝置解析度
         if ($device_w -eq 0) { $device_w = $width_max }
         if ($device_h -eq 0) { $device_h = $height_max }
         # $width_max
@@ -127,14 +169,16 @@ function rdpConnect {
     Set-Content $rdp_path $rdp
     if (!$OutputRDP){ Start-Process $rdp_path }
 }
-# rdpConnect 192.168.3.12 -Zoom:1.5
-# rdpConnect 192.168.3.12 'pwcopy' -Zoom:1.5
-# rdpConnect 192.168.3.12 -Ratio:1.1 -Zoom:1.5
-# rdpConnect 192.168.3.12 -FullScreen -Zoom:1.5
-# rdpConnect 192.168.3.12 -MaxWindows -Zoom:1.5
-# rdpConnect 192.168.3.12 -Define 1024 768 100 100 -Zoom:1.5
+# rdpConnect 192.168.3.12
+# rdpConnect 192.168.3.12 'pwcopy'
+# rdpConnect 192.168.3.12 -Ratio:1.1
+# rdpConnect 192.168.3.12 -FullScreen
+# rdpConnect 192.168.3.12 -MaxWindows
+# rdpConnect 192.168.3.12 -Define 1024 768 100 100
 
 
+
+# 安裝到電腦的 PROFILE 參數內
 function Install {
     param (
         [switch] $ForceAppend
@@ -161,6 +205,8 @@ function Install {
 } # Install
 
 
+
+# 下載離線包到電腦以便使用Bat雙擊離線開啟
 function Download {
     param (
         [Parameter(Position = 0, ParameterSetName = "")]

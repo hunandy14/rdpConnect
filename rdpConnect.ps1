@@ -290,8 +290,7 @@ function rdpMgr {
     }    
     
     $Serv = $list | Out-GridView -PassThru -Title:'rdpConnect'
-    
     if ($Serv) {
-        rdpConnect $Serv.IP -PasswordCopy:$Serv.PW -Ratio:$Ratio
+        rdpConnect $Serv.IP -PasswordCopy:$Serv.PW -Ratio:$Ratio -FullScreen:$FullScreen
     }
 } # rdpMgr

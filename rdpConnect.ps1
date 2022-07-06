@@ -175,7 +175,7 @@ function rdpConnect {
 # rdpConnect 192.168.3.12
 # rdpConnect 192.168.3.12 'pwcopy'
 # rdpConnect 192.168.3.12 -Ratio:1.1
-# rdpConnect 192.168.3.12 -FullScreen
+rdpConnect 192.168.3.12 -FullScreen
 # rdpConnect 192.168.3.12 -MaxWindows
 # rdpConnect 192.168.3.12 -Define 1024 768 100 100
 
@@ -291,6 +291,10 @@ function rdpMgr {
     
     $Serv = $list | Out-GridView -PassThru -Title:'rdpConnect'
     if ($Serv) {
-        rdpConnect $Serv.IP -PasswordCopy:$Serv.PW -Ratio:$Ratio -FullScreen:$FullScreen
+        if ($FullScreen) {
+            rdpConnect $Serv.IP -PasswordCopy:$Serv.PW -FullScreen:$FullScreen
+        } else {
+            rdpConnect $Serv.IP -PasswordCopy:$Serv.PW -Ratio:$Ratio
+        }
     }
 } # rdpMgr

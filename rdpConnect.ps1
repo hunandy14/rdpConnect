@@ -281,7 +281,7 @@ function rdpMgr {
     }
     if ($Encoding) { # Unicode,UTF7,UTF8,ASCII,UTF32,BigEndianUnicode,Default,OEM
         $list = Import-Csv $Path -Encoding:$Encoding
-    } elseif (!$__rdpMgrEncoding__) {
+    } elseif ($__rdpMgrEncoding__) {
         $list = Import-Csv $Path -Encoding:$__rdpMgrEncoding__
     } else {
         $list = Import-Csv $Path

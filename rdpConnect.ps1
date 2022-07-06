@@ -271,7 +271,9 @@ function rdpMgr {
         return
     }
     if (!$Path) {
-        if  ($PSScriptRoot){
+        if ($__rdpMgrPath__) {
+            $Path = $__rdpMgrPath__
+        } elseif  ($PSScriptRoot){
             $Path = "$PSScriptRoot\rdpList.csv"
         } else {
             $Path = 'rdpList.csv'

@@ -266,10 +266,6 @@ function rdpMgr {
         [System.Object] $Encoding
         
     )
-    if ($EditList) {
-        notepad.exe $Path
-        return
-    }
     if (!$Path) {
         if ($__rdpMgrPath__) {
             $Path = $__rdpMgrPath__
@@ -279,13 +275,19 @@ function rdpMgr {
             $Path = 'rdpList.csv'
         }
     }
+    
+    if ($EditList) {
+        notepad.exe $Path
+        return
+    }
+    
     if ($Encoding) { # Unicode,UTF7,UTF8,ASCII,UTF32,BigEndianUnicode,Default,OEM
         $list = Import-Csv $Path -Encoding:$Encoding
     } elseif ($__rdpMgrEncoding__) {
         $list = Import-Csv $Path -Encoding:$__rdpMgrEncoding__
     } else {
         $list = Import-Csv $Path
-    }
+    }    
     
     $Serv = $list | Out-GridView -PassThru -Title:'rdpConnect'
     

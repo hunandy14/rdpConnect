@@ -214,7 +214,7 @@ function rdpConnect {
         $rdp = $rdp.Replace('connection type:i:7', 'connection type:i:3')
         $rdp = $rdp.Replace('authentication level:i:2', 'authentication level:i:0')        
     } else {
-        # 依據比例縮小
+        # 最大化視窗(一開始初始化的數據就是這個所以留空)
         if($MaxWindows){
         # 自訂大小
         } elseif($Define) {
@@ -230,15 +230,19 @@ function rdpConnect {
             # 如果沒有大於原本的寬就更換上去
             if ($newWidth -lt $rdpInfo.Resolution[0]) { $rdpInfo.Resolution[0] = $newWidth } $rdpInfo.Winposstr[0]  = $nweX1
         }
+        
+        # 轉換成rdp檔案
         $rdp = $rdpInfo|ConvertTo-Rdp $template_path1
     }
     # 複製密碼到剪貼簿
     if($PasswordCopy) { if ((Get-Clipboard) -ne $PasswordCopy) { Set-Clipboard $PasswordCopy } }
     # 儲存 rdp 檔案並開啟
-    $rdp_path = "$env:TEMP\Default.rdp"
-    if ($OutputRDP) { $rdp_path = $OutputRDP }
-    Set-Content $rdp_path $rdp
-    if (!$OutputRDP){ Start-Process $rdp_path }
+    if ($OutputRDP) {
+        $rdp|Set-Content $OutputRDP
+    } else {
+        $rdp|Set-Content "$env:TEMP\Default.rdp"
+        Start-Process $rdp_path
+    }
 }
 # rdpConnect 192.168.3.12
 # rdpConnect 192.168.3.12 'pwcopy'

@@ -43,12 +43,12 @@ function New-RdpInfo {
         [string] $x2=0,
         [string] $y2=0
     )
-    [pscustomobject]@{
+    [PSCustomObject]@{
         Ip         = $ip
         Resolution = @($device_w,$device_h)
         Winposstr  = @($x1, $y1, $x2, $y2)
         Margin     = @(0, 0)
-        Path       = ''
+        Path       = '.\Default.rdp'
     }
 } # New-RdpInfo
 # 轉換至RDP檔案
@@ -249,6 +249,7 @@ function rdpConnect {
 # rdpConnect 192.168.3.12 -Ratio:1.1
 # rdpConnect 192.168.3.12 -FullScreen
 # rdpConnect 192.168.3.12 -MaxWindows
+# rdpConnect 192.168.3.12 -OutputRDP "run.rdp"
 # rdpConnect 192.168.3.12 -Define 1024 768
 
 

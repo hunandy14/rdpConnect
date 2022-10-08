@@ -47,11 +47,10 @@ function New-RdpInfo {
         Ip         = $ip
         Resolution = @($device_w,$device_h)
         Winposstr  = @($x1, $y1, $x2, $y2)
+        Margin     = @(0, 0)
         Path       = ''
     }
 } # New-RdpInfo
-
-
 # 轉換至RDP檔案
 function ConvertTo-Rdp {
     param (
@@ -70,15 +69,11 @@ function ConvertTo-Rdp {
     $rdp = $rdp.Replace('${y2}'     ,$InputObject.Winposstr[3])
     return $rdp
 }
-
-
 # $rdp_path = 'run.rdp'
 # $rdp=(New-RdpInfo '192.168.3.12' 2543 1494 0 10 2560 1550)
 # $rdp|ConvertTo-Rdp|Set-Content $rdp_path
 # Start-Process $rdp_path
-
-
-
+# RETURN
 
 # 取到最近偶數 (遠離零 ex: 13.0 -> 14)
 function RoundToEven {
@@ -96,8 +91,6 @@ function RoundToEven {
         elseif ($diff -le 0) { $result = $result+$shift }
     } return $result
 } # RoundToEven 11
-
-
 # 捨去到偶數
 function FloorToEven {
     param (
@@ -107,8 +100,6 @@ function FloorToEven {
     if ($Decimal -gt 0) { $shift=1 } elseif ($Decimal -lt 0) { $shift=-1 } else { $shift=0 }
     return (RoundToEven ($Decimal-$shift))
 }
-
-
 # 計算最大化的視窗數值
 function rdpMaxSize {
     param (
@@ -140,15 +131,17 @@ function rdpMaxSize {
     $w = [Math]::Round(($w-0.5), 0, [MidpointRounding]::ToEven)
     $h = [Math]::Round(($h-0.5), 0, [MidpointRounding]::ToEven)
     $rdp = New-RdpInfo '' $w $h $x1 $y1 $x2 $y2
+    $rdp.Margin[0] = $mgW
+    $rdp.Margin[1] = $mgH
     return $rdp
 } 
 # $rdp_path = 'run.rdp'
-# $rdpInfo = rdpMaxSize $ScreenInfo.Width $ScreenInfo.Height $ScreenInfo.Scaling
+# $rdpInfo = rdpMaxSize $ScreenInfo.Width $ScreenInfo.Height 1.25
 # $rdpInfo.Ip = '192.168.3.12'
 # $rdpInfo
 # $rdp = $rdpInfo|ConvertTo-Rdp $rdp_path
 # Start-Process $rdp_path
-
+# RETURN
 
 # 連接到rdp遠端
 function rdpConnect {
@@ -163,7 +156,7 @@ function rdpConnect {
         [String] $PasswordCopy,
         # 傻瓜包
         [Parameter(ParameterSetName = "A")]
-        [double] $Ratio = 16/9,
+        [double] $Ratio = 16/11,
         [Parameter(ParameterSetName = "A")] # 預設模式
         [switch] $Nomal,
         [Parameter(ParameterSetName = "B")] # 可選1 (最大化視窗)
@@ -204,56 +197,55 @@ function rdpConnect {
         $rdp = Invoke-RestMethod 'raw.githubusercontent.com/hunandy14/rdpConnect/master/Template.rdp'
         Set-Content $template_path2 $rdp
     }
+    
+    # 計算最大化的視窗數值
+    $rdpInfo = rdpMaxSize $ScreenInfo.Width $ScreenInfo.Height $ScreenInfo.Scaling
+    $rdpInfo.Ip = $IP
+    $rdpInfo
 
     # 選擇模式
     if ($FullScreen) {
+        # 設置 rdp 檔案
+        $rdp = $rdp.Replace('${ip}'     ,$IP)
+        $rdp = $rdp.Replace('${width}'  ,$ScreenInfo.Width)
+        $rdp = $rdp.Replace('${height}' ,$ScreenInfo.Height)
         # 全螢幕參數
         $rdp = $rdp.Replace('screen mode id:i:1', 'screen mode id:i:2')
         $rdp = $rdp.Replace('connection type:i:7', 'connection type:i:3')
         $rdp = $rdp.Replace('authentication level:i:2', 'authentication level:i:0')        
     } else {
-        # 計算最大化的視窗數值
-        # Write-Host "AAAAAAAAAAAA"
-        $rdpInfo = rdpMaxSize $ScreenInfo.Width $ScreenInfo.Height $ScreenInfo.Scaling
-        $rdpInfo.Ip = $IP
-        $rdpInfo
         # 依據比例縮小
-        # if ($Ratio) {
-        #     [Double] $Width =$rdpInfo.Resolution[0]
-        #     [Double] $Height=$rdpInfo.Resolution[1]
-        #     [Double] $newWidth = $Height*$Ratio
-        #     $newWidth = [Math]::Round(([int]$newWidth+0.5), 0, [MidpointRounding]::ToEven)
-        #     $newWidth = [Math]::Round((21.5), 0, [MidpointRounding]::ToEven)
-            
-        #     $newWidth
-            
-        #     [Double] $diff = $Width-$newWidth
-        #     [Double] $nweX1 = [Double]$rdpInfo.Winposstr[0]+$diff
-            
-            
-        #     $rdpInfo.Resolution[0] = $newWidth
-        #     $rdpInfo.Winposstr[0]  = $nweX1
-        # }
-        $rdpInfo
-        
+        if($MaxWindows){
+        # 自訂大小
+        } elseif($Define) {
+            if ($device_w -lt $rdpInfo.Resolution[0]) { $rdpInfo.Resolution[0] = $device_w }
+            if ($device_h -lt $rdpInfo.Resolution[1]) { $rdpInfo.Resolution[1] = $device_h }
+            if ($x1 -gt 0) { $rdpInfo.Winposstr[0] = $x1 } else { $rdpInfo.Winposstr[0] = ([Int64]$rdpInfo.Winposstr[2]-$rdpInfo.Resolution[0]-$rdpInfo.Margin[0]) }
+            if ($y1 -gt 0) { $rdpInfo.Winposstr[1] = $y1 } else { $rdpInfo.Winposstr[1] = ([Int64]$rdpInfo.Winposstr[3]-$rdpInfo.Resolution[1]-$rdpInfo.Margin[1]) }
+        # 預設模式分割成特定比例
+        } else {
+            $newWidth = RoundToEven($Ratio*$rdpInfo.Resolution[1])
+            $diff = -$newWidth+$rdpInfo.Resolution[0]
+            $nweX1 = $diff+$rdpInfo.Winposstr[0]
+            # 如果沒有大於原本的寬就更換上去
+            if ($newWidth -lt $rdpInfo.Resolution[0]) { $rdpInfo.Resolution[0] = $newWidth } $rdpInfo.Winposstr[0]  = $nweX1
+        }
+        $rdp = $rdpInfo|ConvertTo-Rdp $template_path1
     }
-    $rdp = $rdpInfo|ConvertTo-Rdp $template_path1
-    # return
+    # 複製密碼到剪貼簿
+    if($PasswordCopy) { if ((Get-Clipboard) -ne $PasswordCopy) { Set-Clipboard $PasswordCopy } }
     # 儲存 rdp 檔案並開啟
     $rdp_path = "$env:TEMP\Default.rdp"
     if ($OutputRDP) { $rdp_path = $OutputRDP }
-    if($PasswordCopy) {
-        if ((Get-Clipboard) -ne $PasswordCopy) { Set-Clipboard $PasswordCopy }
-    }
     Set-Content $rdp_path $rdp
     if (!$OutputRDP){ Start-Process $rdp_path }
 }
-rdpConnect 192.168.3.12 
+# rdpConnect 192.168.3.12
 # rdpConnect 192.168.3.12 'pwcopy'
 # rdpConnect 192.168.3.12 -Ratio:1.1
 # rdpConnect 192.168.3.12 -FullScreen
 # rdpConnect 192.168.3.12 -MaxWindows
-# rdpConnect 192.168.3.12 -Define 1024 768 100 100
+# rdpConnect 192.168.3.12 -Define 1024 768
 
 
 

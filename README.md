@@ -76,3 +76,27 @@ irm bit.ly/36tr1aS|iex; Download '192.168.3.12' '123456' -Ratio:(16/11) -OutName
 # 輸出 rdp 檔案 (寫死的rdp)
 irm bit.ly/36tr1aS|iex; rdpConnect 192.168.3.12 -OutputRDP:"Default.rdp"
 ```
+
+## rdpMgr
+安裝
+
+```ps1
+# 下載線上版的僅在本地保留 RdpMgr.cmd啟動捷徑 和 csv 伺服器情報範例
+DownloadRdpMgr $Path
+# 追加下載 rdpConnect 與 RdpMgr
+DownloadRdpMgr -Offline $Path
+```
+
+使用
+```ps1
+# 打開清單
+irm bit.ly/36tr1aS|iex; RdpMgr
+
+# 編輯清單
+irm bit.ly/36tr1aS|iex; RdpMgr -EditCsv
+```
+
+捷徑
+```ps1
+powershell -win hid -nop -c "irm bit.ly/36tr1aS|iex; RdpMgr"
+```

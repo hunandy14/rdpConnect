@@ -30,6 +30,7 @@ public class PInvoke {
         LogicalWeight = $LogicalWeight
     }
 } $ScreenInfo = GetScreenInfo
+# $ScreenInfo
 
 
 # RDP結構
@@ -48,6 +49,7 @@ function New-RdpInfo {
         Resolution = @($device_w,$device_h)
         Winposstr  = @($x1, $y1, $x2, $y2)
         Margin     = @(0, 0)
+        Scaling    = 1.0
         Path       = '.\Default.rdp'
     }
 } # New-RdpInfo
@@ -133,6 +135,7 @@ function rdpMaxSize {
     $rdp = New-RdpInfo '' $w $h $x1 $y1 $x2 $y2
     $rdp.Margin[0] = $mgW
     $rdp.Margin[1] = $mgH
+    $rdp.Scaling = $Scaling
     return $rdp
 } 
 # $rdp_path = 'run.rdp'
@@ -201,7 +204,7 @@ function rdpConnect {
     # 計算最大化的視窗數值
     $rdpInfo = rdpMaxSize $ScreenInfo.Width $ScreenInfo.Height $ScreenInfo.Scaling
     $rdpInfo.Ip = $IP
-    $rdpInfo
+    # $rdpInfo
 
     # 選擇模式
     if ($FullScreen) {
@@ -222,6 +225,7 @@ function rdpConnect {
             if ($device_h -lt $rdpInfo.Resolution[1]) { $rdpInfo.Resolution[1] = $device_h }
             if ($x1 -gt 0) { $rdpInfo.Winposstr[0] = $x1 } else { $rdpInfo.Winposstr[0] = ([Int64]$rdpInfo.Winposstr[2]-$rdpInfo.Resolution[0]-$rdpInfo.Margin[0]) }
             if ($y1 -gt 0) { $rdpInfo.Winposstr[1] = $y1 } else { $rdpInfo.Winposstr[1] = ([Int64]$rdpInfo.Winposstr[3]-$rdpInfo.Resolution[1]-$rdpInfo.Margin[1]) }
+            # $rdpInfo
         # 預設模式分割成特定比例
         } else {
             $newWidth = RoundToEven($Ratio*$rdpInfo.Resolution[1])
@@ -240,8 +244,8 @@ function rdpConnect {
     if ($OutputRDP) {
         $rdp|Set-Content $OutputRDP
     } else {
-        $rdp|Set-Content "$env:TEMP\Default.rdp"
-        Start-Process $rdp_path
+        $rdp_path = "$env:TEMP\Default.rdp"
+        $rdp|Set-Content $rdp_path; Start-Process $rdp_path
     }
 }
 # rdpConnect 192.168.3.12
@@ -250,7 +254,7 @@ function rdpConnect {
 # rdpConnect 192.168.3.12 -FullScreen
 # rdpConnect 192.168.3.12 -MaxWindows
 # rdpConnect 192.168.3.12 -OutputRDP "run.rdp"
-# rdpConnect 192.168.3.12 -Define 1024 768
+# rdpConnect 192.168.3.12 -Define 2560 1600
 
 
 

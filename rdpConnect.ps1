@@ -1,36 +1,18 @@
 # 獲取螢幕解析度
-$__GetScreenInfoFlag__
 function GetScreenInfo {
-    if (!$__GetScreenInfoFlag__) {
-    Add-Type -TypeDefinition:@"
-using System;
-using System.Runtime.InteropServices;
-public class PInvoke {
-    [DllImport("user32.dll")] public static extern IntPtr GetDC(IntPtr hwnd);
-    [DllImport("gdi32.dll")] public static extern int GetDeviceCaps(IntPtr hdc, int nIndex);
-}
-"@
-    } $__GetScreenInfoFlag__ = $true
-    
-    $hdc = [PInvoke]::GetDC([IntPtr]::Zero)
-    $Width   = [PInvoke]::GetDeviceCaps($hdc, 118)
-    $Height  = [PInvoke]::GetDeviceCaps($hdc, 117)
-    $Refresh = [PInvoke]::GetDeviceCaps($hdc, 116)
-    $Scaling = [PInvoke]::GetDeviceCaps($hdc, 117) / [PInvoke]::GetDeviceCaps($hdc, 10)
-    $LogicalHeight =  [PInvoke]::GetDeviceCaps($hdc, 10)
-    $LogicalWeight =  [PInvoke]::GetDeviceCaps($hdc, 8)
-   
-    [pscustomobject]@{
-        Width         = $Width
-        Height        = $Height
-        Refresh       = $Refresh
-        # Scaling       = [Math]::Round($Scaling, 3)
-        Scaling       = $Scaling
-        LogicalHeight = $LogicalHeight
-        LogicalWeight = $LogicalWeight
+    if (!$__GetScreenInfoOnce__) { $Script:__GetScreenInfoOnce__ = $true
+        Add-Type -TypeDefinition:'using System; using System.Runtime.InteropServices; public class PInvoke { [DllImport("user32.dll")] public static extern IntPtr GetDC(IntPtr hwnd); [DllImport("gdi32.dll")] public static extern int GetDeviceCaps(IntPtr hdc, int nIndex); }'
     }
-} $ScreenInfo = GetScreenInfo
-# $ScreenInfo
+    $hdc = [PInvoke]::GetDC([IntPtr]::Zero)
+    [pscustomobject]@{
+        Width         = [PInvoke]::GetDeviceCaps($hdc, 118)
+        Height        = [PInvoke]::GetDeviceCaps($hdc, 117)
+        Refresh       = [PInvoke]::GetDeviceCaps($hdc, 116)
+        Scaling       = [PInvoke]::GetDeviceCaps($hdc, 117) / [PInvoke]::GetDeviceCaps($hdc, 10)
+        LogicalHeight = [PInvoke]::GetDeviceCaps($hdc, 10)
+        LogicalWeight = [PInvoke]::GetDeviceCaps($hdc, 8)
+    }
+} $ScreenInfo = (GetScreenInfo) # ;$ScreenInfo
 
 
 # RDP結構

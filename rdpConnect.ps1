@@ -281,16 +281,19 @@ function WrapUp2Bat {
         $bitlyLine=(($Content -split "`n") -match "bit.ly|raw.githubusercontent.com")
         foreach ($line in $bitlyLine) {
             $expand = $line -replace("(\s*\|\s*(Invoke-Expression|iex))|^iex","") |Invoke-Expression
-            $Content = $Content.Replace($line, (RemoveComment $expand))
+            $Content = $Content.Replace($line, ($expand))
         }
         return ($Content)
     } # ExpandIrm (Invoke-RestMethod bit.ly/Get-FileList)
     
     # 下載
     $Url  = "raw.githubusercontent.com/hunandy14/rdpConnect/master/rdpMgr.bat"
-    $Ct = (Invoke-RestMethod $Url)
-    
-    $Ct|Out-File "$Path\rdpMgr.bat"
+    $Ct = Invoke-RestMethod $Url
+    $Ct = ExpandIrm $Ct
+    $Ct = $Ct.Replace("`n", "`r`n")
+    # 輸出檔案
+    $Enc = [Text.Encoding]::GetEncoding([int](PowerShell -NoP "([Text.Encoding]::Default).CodePage"))
+    [IO.File]::AppendAllText("$Path\rdpMgr.bat", $Ct, $Enc);
 } # WrapUp2Bat
 
 

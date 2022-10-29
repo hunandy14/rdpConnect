@@ -9,11 +9,11 @@ function GetScreenInfo {
         Height        = [PInvoke]::GetDeviceCaps($hdc, 117)
         Refresh       = [PInvoke]::GetDeviceCaps($hdc, 116)
         Scaling       = [PInvoke]::GetDeviceCaps($hdc, 117) / [PInvoke]::GetDeviceCaps($hdc, 10)
-        LogicalHeight = [PInvoke]::GetDeviceCaps($hdc, 10)
         LogicalWeight = [PInvoke]::GetDeviceCaps($hdc, 8)
+        LogicalHeight = [PInvoke]::GetDeviceCaps($hdc, 10)
     }
-} # $ScreenInfo = (GetScreenInfo) # ;$ScreenInfo
-
+} if (!$ScreenInfo) { $ScreenInfo = (GetScreenInfo) } 
+# $ScreenInfo
 
 # RDP結構
 function New-RdpInfo {
@@ -38,7 +38,6 @@ function New-RdpInfo {
         
     )
     if ($FullScreen) {
-        $ScreenInfo = (GetScreenInfo)
         return [PSCustomObject]@{
             Ip         = $ip
             Resolution = @($ScreenInfo.Width, $ScreenInfo.Height)
@@ -100,9 +99,9 @@ function ConvertTo-Rdp {
     return $rdp
 } # (New-RdpInfo -FullScreen)|ConvertTo-Rdp
 # $rdpInfo = (New-RdpInfo '192.168.3.14' 3818 2034 0 10 3840 2100)
-# $rdpInfo = (New-RdpInfo '192.168.3.14' 3840 2160 -FullScreen)
+# $rdpInfo = (New-RdpInfo '192.168.3.14' -FullScreen)
 # $rdp = ($rdpInfo|ConvertTo-Rdp)
-# $rdp
+# $rdp > 虛擬機14.rdp; explorer.exe 虛擬機14.rdp
 
 # 計算最大化的視窗數值
 function rdpMaxSize {
@@ -111,7 +110,6 @@ function rdpMaxSize {
         [String] $IP
     )
     # 獲取螢幕資訊
-    $ScreenInfo = (GetScreenInfo)
     [double] $Width   = $ScreenInfo.Width
     [double] $Height  = $ScreenInfo.Height
     [double] $Scaling = $ScreenInfo.Scaling
@@ -160,7 +158,7 @@ function rdpConnect {
         [string] $IP,
         # 傻瓜包
         [Parameter(ParameterSetName = "A")] # 預設模式 (特定比例)
-        [double] $Ratio = (16/11),
+        [double] $Ratio = (16/10),
         [Parameter(ParameterSetName = "B")] # 可選1 (最大化視窗)
         [switch] $MaxWindows,
         [Parameter(ParameterSetName = "C")] # 可選2 (螢幕)
@@ -211,9 +209,9 @@ function rdpConnect {
                 $rdpInfo.Resolution[0] = [int]$newWidth 
             } $rdpInfo.Winposstr[0]  = [int]$nweX1
         }
-        # 轉換成rdp檔案
-        $rdp = $rdpInfo|ConvertTo-Rdp
     }
+    # 轉換成rdp檔案
+    $rdp = $rdpInfo|ConvertTo-Rdp
     
     # 複製密碼到剪貼簿
     if($CopyPassWD) { if ((Get-Clipboard) -ne $CopyPassWD) { Set-Clipboard $CopyPassWD } }
@@ -224,8 +222,8 @@ function rdpConnect {
         $rdp_path = "$env:TEMP\Default.rdp"
         $rdp|Set-Content $rdp_path; Start-Process $rdp_path
     }
-}
-# rdpConnect 192.168.3.14
+    # return $rdpInfo
+} # rdpConnect 192.168.3.14
 # rdpConnect 192.168.3.14 -Copy:'PassWD'
 # rdpConnect 192.168.3.14 -Ratio:(16/10)
 # rdpConnect 192.168.3.14 -FullScreen
@@ -313,44 +311,42 @@ function rdpMgr {
         [Parameter(ParameterSetName = "")]
         [string] $Path,
         [Parameter(ParameterSetName = "")]
-        [double] $Ratio = 16/11,
+        [double] $Ratio = (16/11),
         [Parameter(ParameterSetName = "")]
         [switch] $FullScreen,
         [Parameter(ParameterSetName = "")]
-        [switch] $EditList,
+        [switch] $Edit,
         [Parameter(ParameterSetName = "")]
-        [System.Object] $Encoding
+        [int] $Encoding = (([Text.Encoding]::Default).CodePage)
         
     )
+    # 編輯CSV檔案
+    if ($Edit) { notepad.exe $Path; return }
+    # 預設路徑
     if (!$Path) {
-        if ($__rdpMgrPath__) {
+        if ($__rdpMgrPath__) { # 全域變數設定的位置
             $Path = $__rdpMgrPath__
-        } elseif  ($PSScriptRoot){
-            $Path = "$PSScriptRoot\rdpList.csv"
-        } else {
-            $Path = 'rdpList.csv'
+        } else { # 工作目錄的位置
+            if  ($PSScriptRoot){
+                $Path = "$PSScriptRoot\rdpList.csv"
+            } else { $Path = '.\rdpList.csv' }
         }
     }
+
+    # 編碼
+    if ($__rdpMgrEncoding__) { $Encoding = $__rdpMgrEncoding__ }
+    $Enc = [Text.Encoding]::GetEncoding($Encoding)
+    # 讀取CSV檔案
+    $list = [IO.File]::ReadAllText($Path, $Enc)|ConvertFrom-Csv
     
-    if ($EditList) {
-        notepad.exe $Path
-        return
-    }
-    
-    if ($Encoding) { # Unicode,UTF7,UTF8,ASCII,UTF32,BigEndianUnicode,Default,OEM
-        $list = Import-Csv $Path -Encoding:$Encoding
-    } elseif ($__rdpMgrEncoding__) {
-        $list = Import-Csv $Path -Encoding:$__rdpMgrEncoding__
-    } else {
-        $list = Import-Csv $Path
-    }    
-    
+    # 執行rdp連線
     $Serv = $list | Out-GridView -PassThru -Title:'rdpConnect'
     if ($Serv) {
         if ($FullScreen) {
-            rdpConnect $Serv.IP -PasswordCopy:$Serv.PW -FullScreen:$FullScreen
+            rdpConnect $Serv.IP -Copy:$Serv.PW -FullScreen:$FullScreen
         } else {
-            rdpConnect $Serv.IP -PasswordCopy:$Serv.PW -Ratio:$Ratio
+            rdpConnect $Serv.IP -Copy:$Serv.PW -Ratio:$Ratio
         }
     }
 } # rdpMgr
+# rdpMgr -FullScreen

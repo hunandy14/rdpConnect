@@ -257,10 +257,10 @@ function Install {
     $impt = "Import-Module rdpConnect.ps1"
     if ($ForceAppend) {
         if (!((Get-Content $PROFILE)|Where-Object{$_ -eq $impt})) { Add-Content $PROFILE "`n$impt" }
-        Write-Host "已新增 Import-Module 到啟動文件結尾" -ForegroundColor:Yellow
+        Write-Host "Has been Added rdpConnect to PROFILE." -ForegroundColor:Yellow
     } else {
         Set-Clipboard $impt
-        Write-Host "已複製 Import-Module 到剪貼簿。請自行貼到啟動文件上" -ForegroundColor:Yellow
+        Write-Host "Has been copy to Clipboard. Please paste it on the PROFILE." -ForegroundColor:Yellow
         notepad.exe $PROFILE
     }
 } # Install

@@ -55,7 +55,7 @@ function New-RdpInfo {
     }
 } # New-RdpInfo '192.168.3.14'
 # $rdpInfo = (New-RdpInfo '192.168.3.14' 3818 2034 0 10 3840 2100)
-# $rdpInfo = (New-RdpInfo '192.168.3.14' 3840 2160 -FullScreen)
+# $rdpInfo = (New-RdpInfo '192.168.3.14' -FullScreen)
 # $rdpInfo
 # return
 
@@ -73,7 +73,11 @@ function ConvertTo-Rdp {
         $rdp = [IO.File]::ReadAllText($rdptplPath, [Text.Encoding]::Default)
     } if(!$rdp) {
         if ($PSScriptRoot) { Write-Warning "Download rdpTemplate from github because `"$rdptplPath`" doesn't exist." }
-        $rdp = Invoke-RestMethod('raw.githubusercontent.com/hunandy14/rdpConnect/master/Template.rdp')
+        if ($env:0) {
+            $rdp = (([Io.File]::ReadAllText($env:0,[Text.Encoding]::Default) -split '[:]PwshScript')[3])
+        } else {
+            $rdp = Invoke-RestMethod('raw.githubusercontent.com/hunandy14/rdpConnect/master/Template.rdp')
+        }
     } # $rdp
     # 設置 rdp 檔案
     $rdp = $rdp.Replace('${ip}'     ,$InputObject.Ip)
@@ -264,6 +268,12 @@ function Install {
 
 
 # 下載離線包到電腦以便使用Bat雙擊離線開啟
+function WrapUp2Bat {
+    param (
+        
+    )
+    
+}
 function Download {
     param (
         [Parameter(Position = 0, ParameterSetName = "")]

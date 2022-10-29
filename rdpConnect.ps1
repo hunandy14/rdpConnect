@@ -280,15 +280,15 @@ function WrapUp2Bat {
     function ExpandIrm( [Object] $Content, [String] $Encoding='UTF8' ) {
         $bitlyLine=(($Content -split "`n") -match "bit.ly|raw.githubusercontent.com")
         foreach ($line in $bitlyLine) {
-            $expand = $line -replace('(\s*\|\s*(Invoke-Expression|iex))|^iex','') |Invoke-Expression
-            $Content = $Content.Replace($line, ($expand))
+            $expand = $line -replace("(\s*\|\s*(Invoke-Expression|iex))|^iex","") |Invoke-Expression
+            $Content = $Content.Replace($line, (RemoveComment $expand))
         }
-        return (RemoveComment $Content)
+        return ($Content)
     } # ExpandIrm (Invoke-RestMethod bit.ly/Get-FileList)
     
     # 下載
-    $Url  = 'raw.githubusercontent.com/hunandy14/rdpConnect/master/rdpMgr.bat'
-    $Ct = RemoveComment(ExpandIrm(Invoke-RestMethod $Url))
+    $Url  = "raw.githubusercontent.com/hunandy14/rdpConnect/master/rdpMgr.bat"
+    $Ct = (Invoke-RestMethod $Url)
     
     $Ct|Out-File "$Path\rdpMgr.bat"
 } # WrapUp2Bat

@@ -1,7 +1,7 @@
 @echo off
 
-set "0=%~f0"& set "1=%~dp0"& set PwshScript=([Io.File]::ReadAllText($env:0,[Text.Encoding]::Default) -split '[:]PwshScript')
-powershell -nop "(%PwshScript%[2])|iex; Exit $LastExitCode"
+set "0=%~f0"& set "1=%~dp0"& set PwshScript=([Io.File]::ReadAllText($env:0,[Text.Encoding]::GetEncoding(65001)) -split '[:]PwshScript')
+powershell -nop -c "(%PwshScript%[2])|iex; Exit $LastExitCode"
 
 @REM echo ExitCode: %errorlevel%& pause
 Exit %errorlevel%

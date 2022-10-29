@@ -3,10 +3,6 @@
 set "0=%~f0"& set "1=%~dp0"& set PwshScript=([Io.File]::ReadAllText($env:0,[Text.Encoding]::Default) -split '[:]PwshScript')
 powershell -nop "(%PwshScript%[2])|iex; Exit $LastExitCode"
 
-@REM set PsFile=($env:temp+'\a.ps1')& set path=%path%;C:\Program Files\PowerShell\7
-@REM powershell -nop "(%PwshScript%[2]+%PwshScript%[1])|Out-File %PsFile% utf8"
-@REM pwsh -nop -c "([Io.File]::ReadAllText(%PsFile%,[Text.Encoding]::Default))|iex; Exit $LastExitCode"
-
 @REM echo ExitCode: %errorlevel%& pause
 Exit %errorlevel%
 
@@ -17,17 +13,23 @@ Exit %errorlevel%
 :PwshScript#:: script1:: Main
 #:: --------------------------------------------------------------------------------------------------------------------------------
 Write-Host "by PSVersion::" $PSVersionTable.PSVersion
-rdpMgr
 
-:PwshScript#:: script2:: rdpConnect
+$CsvPath  = '.\rdpList.csv'
+$Encoding = 65001
+$Ratio    = (16/10)
+
+rdpMgr -Path:$CsvPath -Encoding:$Encoding -Ratio:$Ratio
+
+
+:PwshScript#:: script2:: Prerequisite
 #:: --------------------------------------------------------------------------------------------------------------------------------
-# 載入設定檔
+# Load Setting
 Set-Location ($env:1); [IO.Directory]::SetCurrentDirectory(((Get-Location -PSProvider FileSystem).ProviderPath))
 irm 'raw.githubusercontent.com/hunandy14/rdpConnect/master/rdpConnect.ps1'|iex
-# 呼叫主程式 script1:: Main
 (([Io.File]::ReadAllText($env:0,[Text.Encoding]::Default) -split '[:]PwshScript')[1])|iex
 
-:PwshScript#:: script3:: rdpTemplate
+
+:PwshScript#:: script3:: rdpTemplate File
 #:: --------------------------------------------------------------------------------------------------------------------------------
 screen mode id:i:1
 use multimon:i:0

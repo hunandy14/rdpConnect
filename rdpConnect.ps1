@@ -270,49 +270,28 @@ function Install {
 # 下載離線包到電腦以便使用Bat雙擊離線開啟
 function WrapUp2Bat {
     param (
-        
+        $Path = [Environment]::GetFolderPath("Desktop")
     )
+    # 移除文本中的註解
+    function RemoveComment( [Object] $Content, [String] $Mark='#' ) {
+        return [string](((($Content-split "`n") -replace("($Mark(.*?)$)|(\s+$)","") -notmatch('^\s*$'))) -join "`n")
+    } # RemoveComment (Invoke-RestMethod bit.ly/Get-FileList)
+    # 展開 irm 內容
+    function ExpandIrm( [Object] $Content, [String] $Encoding='UTF8' ) {
+        $bitlyLine=(($Content -split "`n") -match "bit.ly|raw.githubusercontent.com")
+        foreach ($line in $bitlyLine) {
+            $expand = $line -replace('(\s*\|\s*(Invoke-Expression|iex))|^iex','') |Invoke-Expression
+            $Content = $Content.Replace($line, ($expand))
+        }
+        return (RemoveComment $Content)
+    } # ExpandIrm (Invoke-RestMethod bit.ly/Get-FileList)
     
-}
-function Download {
-    param (
-        [Parameter(Position = 0, ParameterSetName = "")]
-        [string] $IP = '192.168.1.1',
-        [Parameter(Position = 1, ParameterSetName = "")]
-        [string] $PW = '',
-        [Parameter(ParameterSetName = "")]
-        [string] $Ratio = '16.0/11.0',
-        [Parameter(ParameterSetName = "")]
-        [string] $Zoom = '1.0',
-        [Parameter(ParameterSetName = "")]
-        [string] $OutName = "rdpServer1",
-        [Parameter(ParameterSetName = "")]
-        [switch] $Pwsh7
-    )
-    # Pswh版本
-    $Pwsh_Path = "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe" 
-    if ($Pwsh7) { $Pwsh_Path = "C:\Program Files\PowerShell\7\pwsh.exe" }
-    # 載入函式
-    (Invoke-RestMethod 'raw.githubusercontent.com/hunandy14/cvEncode/master/cvEncoding.ps1')|Invoke-Expression;
-    $en = (C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -Command '&{[Text.Encoding]::Default.WindowsCodePage}')
-    # 下載離線包
-    (Invoke-RestMethod 'raw.githubusercontent.com/hunandy14/rdpConnect/master/rdpConnect.ps1')|WriteContent 'rdpConnect\rdpConnect.ps1' -Encoding:$en
-    (Invoke-RestMethod 'raw.githubusercontent.com/hunandy14/rdpConnect/master/Template.rdp')|WriteContent 'rdpConnect\Template.rdp' -Encoding:$en
+    # 下載
+    $Url  = 'raw.githubusercontent.com/hunandy14/rdpConnect/master/rdpMgr.bat'
+    $Ct = RemoveComment(ExpandIrm(Invoke-RestMethod $Url))
     
-    # BAT檔案內容
-    $ct = "SET IP=$IP
-SET PW=$PW
-SET RA=$Ratio
-SET ZM=$Zoom
-
-SET CMD=`"Import-Module %~dp0rdpConnect\rdpConnect.ps1; rdpConnect %IP% %PW% -Ratio:(%RA%) -Zoom:%ZM%`"
-
-`"$Pwsh_Path`" -Command `"&{%CMD%}`""
-    
-    # 輸出BAT檔案
-    $ct|WriteContent "$OutName.bat" -Encoding:$en
-} # Download '192.168.3.12' '123456' -Ratio:(16/11) -Zoom:1.5
-
+    $Ct|Out-File "$Path\rdpMgr.bat"
+} # WrapUp2Bat
 
 
 # 儲存管理多個rdp清單
@@ -321,7 +300,7 @@ function rdpMgr {
         [Parameter(ParameterSetName = "")]
         [string] $Path,
         [Parameter(ParameterSetName = "")]
-        [double] $Ratio = (16/11),
+        [double] $Ratio = (16/10),
         [Parameter(ParameterSetName = "")]
         [switch] $FullScreen,
         [Parameter(ParameterSetName = "")]

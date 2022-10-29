@@ -274,14 +274,14 @@ function WrapUp2Bat {
     )
     # 移除文本中的註解
     function RemoveComment( [Object] $Content, [String] $Mark='#' ) {
-        return [string](((($Content-split "`n") -replace("($Mark(.*?)$)|(\s+$)","") -notmatch('^\s*$'))) -join "`n")
+        return [string](((($Content-split "`n") -replace("($Mark(?!')(.*?)$)|(\s+$)","") -notmatch('^\s*$'))) -join "`n")
     } # RemoveComment (Invoke-RestMethod bit.ly/Get-FileList)
     # 展開 irm 內容
     function ExpandIrm( [Object] $Content, [String] $Encoding='UTF8' ) {
         $bitlyLine=(($Content -split "`n") -match "bit.ly|raw.githubusercontent.com")
         foreach ($line in $bitlyLine) {
             $expand = $line -replace("(\s*\|\s*(Invoke-Expression|iex))|^iex","") |Invoke-Expression
-            $Content = $Content.Replace($line, ($expand))
+            $Content = $Content.Replace($line, (RemoveComment $expand))
         }
         return ($Content)
     } # ExpandIrm (Invoke-RestMethod bit.ly/Get-FileList)
@@ -290,10 +290,17 @@ function WrapUp2Bat {
     $Url  = "raw.githubusercontent.com/hunandy14/rdpConnect/master/rdpMgr.bat"
     $Ct = Invoke-RestMethod $Url
     $Ct = ExpandIrm $Ct
+    # $Ct = RemoveComment $Ct
     $Ct = $Ct.Replace("`n", "`r`n")
     # 輸出檔案
-    $Enc = [Text.Encoding]::GetEncoding([int](PowerShell -NoP "([Text.Encoding]::Default).CodePage"))
+    $Encding = (PowerShell -NoP "([Text.Encoding]::Default).CodePage")
+    $Enc = [Text.Encoding]::GetEncoding([int]$Encding)
+    $Ct = $Ct.Replace("65001", $Encding)
     [IO.File]::AppendAllText("$Path\rdpMgr.bat", $Ct, $Enc);
+    # 輸出CSV檔案
+    $Url  = "raw.githubusercontent.com/hunandy14/rdpConnect/master/rdpList.csv"
+    $Ct = Invoke-RestMethod $Url
+    [IO.File]::AppendAllText("$Path\rdpList.csv", $Ct, $Enc);
 } # WrapUp2Bat
 
 

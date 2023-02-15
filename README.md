@@ -7,7 +7,7 @@
 
 快速使用
 ```ps1
-irm bit.ly/36tr1aS|iex; rdpConnect '192.168.3.12' -Copy:'PassWD'
+irm bit.ly/rdpConnect|iex; rdpConnect '192.168.3.12' -Copy:'PassWD'
 ```
 
 
@@ -16,7 +16,7 @@ irm bit.ly/36tr1aS|iex; rdpConnect '192.168.3.12' -Copy:'PassWD'
 # 詳細使用方法
 ## 捷徑的用法
 ```bat
-C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -Command "&{irm bit.ly/36tr1aS|iex; rdpConnect '192.168.3.12' -Copy:'PassWD' -Ratio:(16/11)}"
+C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -Command "&{irm bit.ly/rdpConnect|iex; rdpConnect '192.168.3.12' -Copy:'PassWD' -Ratio:(16/11)}"
 ```
 <br>
 
@@ -24,7 +24,7 @@ C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -Command "&{irm bit.ly
 ```ps1
 # 載入函式庫
 irm 'raw.githubusercontent.com/hunandy14/rdpConnect/master/rdpConnect.ps1'|iex
-irm bit.ly/36tr1aS|iex
+irm bit.ly/rdpConnect|iex
 
 # 自動複製密碼到剪貼簿
 rdpConnect 192.168.3.12 -Copy:'PassWD'
@@ -44,7 +44,7 @@ rdpConnect 192.168.3.12 -Define 1600 900 100 100
 # 使用csv管理多個伺服器登入資訊
 使用方法
 ```ps1
-irm bit.ly/36tr1aS|iex; rdpMgr 'rdpList.csv'
+irm bit.ly/rdpConnect|iex; rdpMgr 'rdpList.csv'
 ```
 
 rdpList.csv
@@ -58,7 +58,7 @@ Description,IP,AC,PW
 Set CsvFile=C:\サーバ接続情報.csv
 
 rem Set IMP=Import-Module W:\RdpServer\rdpConnect\rdpConnect.ps1
-Set IMP=iex (irm bit.ly/36tr1aS)
+Set IMP=iex (irm bit.ly/rdpConnect)
 Set CMD=rdpMgr '%CsvFile%'
 start pwsh.exe -WindowStyle Minimized -NoExit -Command "& {%IMP%;%CMD%;Exit}"
 ```
@@ -69,29 +69,29 @@ start pwsh.exe -WindowStyle Minimized -NoExit -Command "& {%IMP%;%CMD%;Exit}"
 # 離線使用
 ```ps1
 # 輸出 bat 與 ps1 檔案 (執行時可隨著不同螢幕大小調整rdp內容)
-irm bit.ly/36tr1aS|iex; Download '192.168.3.12' '123456' -Ratio:(16/11) -OutName:'rdpServer1'
+irm bit.ly/rdpConnect|iex; Download '192.168.3.12' '123456' -Ratio:(16/11) -OutName:'rdpServer1'
 
 # 輸出 rdp 檔案 (寫死的rdp)
-irm bit.ly/36tr1aS|iex; rdpConnect 192.168.3.12 -OutputRDP:"Default.rdp"
+irm bit.ly/rdpConnect|iex; rdpConnect 192.168.3.12 -OutputRDP:"Default.rdp"
 ```
 
 ## rdpMgr
 使用
 ```ps1
 # 打開清單
-irm bit.ly/36tr1aS|iex; RdpMgr
+irm bit.ly/rdpConnect|iex; RdpMgr
 
 # 編輯清單
-irm bit.ly/36tr1aS|iex; RdpMgr -EditCsv
+irm bit.ly/rdpConnect|iex; RdpMgr -EditCsv
 ```
 
 捷徑
 ```ps1
-powershell -win hid -nop -c "irm bit.ly/36tr1aS|iex; RdpMgr '.\rdpList.csv'"
+powershell -win hid -nop -c "irm bit.ly/rdpConnect|iex; RdpMgr '.\rdpList.csv'"
 ```
 
 打包成 bat 下載到桌面
 
 ```ps1
-irm bit.ly/36tr1aS|iex; WrapUp2Bat
+irm bit.ly/rdpConnect|iex; WrapUp2Bat
 ```

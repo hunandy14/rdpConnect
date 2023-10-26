@@ -1,19 +1,44 @@
 # 獲取螢幕解析度
 function GetScreenInfo {
     if (!$__GetScreenInfoOnce__) { $Script:__GetScreenInfoOnce__ = $true
-        Add-Type -TypeDefinition:'using System; using System.Runtime.InteropServices; public class PInvoke { [DllImport("user32.dll")] public static extern IntPtr GetDC(IntPtr hwnd); [DllImport("gdi32.dll")] public static extern int GetDeviceCaps(IntPtr hdc, int nIndex); }'
+        Add-Type -TypeDefinition @'
+            using System;
+            using System.Runtime.InteropServices;
+            public class PInvoke {
+                [DllImport("user32.dll")] public static extern IntPtr GetDC(IntPtr hwnd);
+                [DllImport("gdi32.dll")] public static extern int GetDeviceCaps(IntPtr hdc, int nIndex);
+                [DllImport("user32.dll", SetLastError = true)] public static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
+                [DllImport("user32.dll", SetLastError = true)] public static extern bool GetWindowRect(IntPtr hWnd, out RECT lpRect);
+                [StructLayout(LayoutKind.Sequential)]
+                public struct RECT {
+                    public int Left;
+                    public int Top;
+                    public int Right;
+                    public int Bottom;
+                }
+            }
+'@
     }
+    
     $hdc = [PInvoke]::GetDC([IntPtr]::Zero)
+    $Scaling = [PInvoke]::GetDeviceCaps($hdc, 117) / [PInvoke]::GetDeviceCaps($hdc, 10)
+    $taskbarHandle = [PInvoke]::FindWindow("Shell_TrayWnd", $null)
+    $taskbarRect = New-Object 'PInvoke+RECT'
+    if (![PInvoke]::GetWindowRect($taskbarHandle, [ref]$taskbarRect)) {
+        throw "Failed to get taskbar dimensions."
+    }; $taskbarHeight = $taskbarRect.Bottom - $taskbarRect.Top
+    
     [pscustomobject]@{
         Width         = [PInvoke]::GetDeviceCaps($hdc, 118)
         Height        = [PInvoke]::GetDeviceCaps($hdc, 117)
         Refresh       = [PInvoke]::GetDeviceCaps($hdc, 116)
-        Scaling       = [PInvoke]::GetDeviceCaps($hdc, 117) / [PInvoke]::GetDeviceCaps($hdc, 10)
-        LogicalWeight = [PInvoke]::GetDeviceCaps($hdc, 8)
+        TaskbarHeight = $taskbarHeight
+        Scaling       = $Scaling
+        LogicalWidth  = [PInvoke]::GetDeviceCaps($hdc, 8)
         LogicalHeight = [PInvoke]::GetDeviceCaps($hdc, 10)
+        LogicalTaskbarHeight = [Math]::Round($taskbarHeight * $Scaling)
     }
-} if (!$ScreenInfo) { $ScreenInfo = (GetScreenInfo) } 
-# $ScreenInfo
+} # if (!$ScreenInfo) { $Script:ScreenInfo = (GetScreenInfo) } 
 
 # RDP結構
 function New-RdpInfo {
@@ -35,8 +60,7 @@ function New-RdpInfo {
         [string] $y2=0,
         [Parameter(ParameterSetName = "FullScreen")]
         [switch] $FullScreen
-        
-    )
+    ) $ScreenInfo = GetScreenInfo
     if ($FullScreen) {
         return [PSCustomObject]@{
             Ip         = $ip
@@ -112,13 +136,13 @@ function rdpMaxSize {
     param (
         [Parameter(Position = 0, ParameterSetName = "", Mandatory)]
         [String] $IP
-    )
+    ) $ScreenInfo = GetScreenInfo
     # 獲取螢幕資訊
     [double] $Width   = $ScreenInfo.Width
     [double] $Height  = $ScreenInfo.Height
     [double] $Scaling = $ScreenInfo.Scaling
     # 初始數據
-    $star   = 40
+    $star   = $ScreenInfo.TaskbarHeight
     $title  = (30-2)
     $margin = 7
     # 縮放後取到偶數

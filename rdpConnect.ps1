@@ -205,6 +205,9 @@ function rdpConnect {
         # 複製密碼
         [Parameter(ParameterSetName = "")]
         [String] $CopyPassWD,
+        # 使用者名稱
+        [Parameter(ParameterSetName = "")]
+        [String] $Username,
         # 輸出rdp檔案
         [Parameter(ParameterSetName = "A")]
         [String] $OutputRDP
@@ -240,6 +243,7 @@ function rdpConnect {
     }
     # 轉換成rdp檔案
     $rdp = $rdpInfo|ConvertTo-Rdp
+    if ($Username) { $rdp += "`nusername:s:$Username" }
     
     # 複製密碼到剪貼簿
     if($CopyPassWD) { if ((Get-Clipboard) -ne $CopyPassWD) { Set-Clipboard $CopyPassWD } }
@@ -366,9 +370,9 @@ function rdpMgr {
     $Serv = $list | Out-GridView -PassThru -Title:'rdpConnect'
     if ($Serv) {
         if ($FullScreen) {
-            rdpConnect $Serv.IP -Copy:$Serv.PW -FullScreen:$FullScreen
+            rdpConnect $Serv.IP -Copy:$Serv.PW -Username:$Serv.AC -FullScreen:$FullScreen
         } else {
-            rdpConnect $Serv.IP -Copy:$Serv.PW -Ratio:$Ratio
+            rdpConnect $Serv.IP -Copy:$Serv.PW -Username:$Serv.AC -Ratio:$Ratio
         }
     }
 } # rdpMgr

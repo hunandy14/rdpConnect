@@ -19,13 +19,6 @@ jobs:
           $version = $tag -replace '^v', ''
           .\build.ps1 -BuildMode Standalone -Version $version
 
-      - name: Copy rdpList.csv template
-        shell: pwsh
-        run: |
-          if (Test-Path rdpList.example.csv) {
-            Copy-Item rdpList.example.csv build\Standalone\rdpList.csv -Force
-          }
-
       - name: Zip Standalone
         shell: pwsh
         run: |

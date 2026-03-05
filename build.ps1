@@ -488,18 +488,17 @@ Write-Host "RdpConnect $Version loaded. Use Connect-RdpSession to start." -Foreg
     Build-BatLauncher -OutputDir $outputDir
 
     # Copy sample CSV
-    $csvPath = Join-Path $Config.RootPath 'rdpList.csv'
+    $csvPath = Join-Path $Config.RootPath 'rdpList.example.csv'
     if (Test-Path $csvPath) {
         Copy-Item $csvPath -Destination $outputDir
     }
     else {
-        # Create sample CSV if doesn't exist
         $sampleCsv = @"
 Description,IP,AC,PW
 Server1,192.168.1.100,administrator,
 Server2,192.168.1.101,admin,
 "@
-        $sampleCsv | Set-Content "$outputDir\rdpList.csv" -Encoding UTF8
+        $sampleCsv | Set-Content "$outputDir\rdpList.example.csv" -Encoding UTF8
     }
 
     $fileSize = [math]::Round((Get-Item "$outputDir\rdpConnect.ps1").Length / 1KB, 2)

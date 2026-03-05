@@ -1,0 +1,38 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Standalone
+        shell: pwsh
+        run: |
+          $tag = "${{ github.ref_name }}"
+          $version = $tag -replace '^v', ''
+          .\build.ps1 -BuildMode Standalone -Version $version
+
+      - name: Copy rdpList.csv template
+        shell: pwsh
+        run: |
+          if (Test-Path rdpList.example.csv) {
+            Copy-Item rdpList.example.csv build\Standalone\rdpList.csv -Force
+          }
+
+      - name: Zip Standalone
+        shell: pwsh
+        run: |
+          $tag = "${{ github.ref_name }}"
+          Compress-Archive -Path build\Standalone\* -DestinationPath "rdpConnect-$tag.zip"
+
+      - name: Create Release and Upload
+        uses: softprops/action-gh-release@v2
+        with:
+          files: rdpConnect-${{ github.ref_name }}.zip

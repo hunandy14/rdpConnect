@@ -1,0 +1,105 @@
+<Window
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="RDP Manager" MinWidth="500" MinHeight="350"
+    WindowStartupLocation="CenterScreen"
+    Background="#F5F5F5">
+    <Window.Resources>
+        <Style x:Key="ConnectButton" TargetType="Button">
+            <Setter Property="Background" Value="#0078D4"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Padding" Value="12,4"/>
+            <Setter Property="Margin" Value="4,0,0,0"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                CornerRadius="3" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#106EBE"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="#005A9E"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="ToolBarButton" TargetType="Button">
+            <Setter Property="Background" Value="#E0E0E0"/>
+            <Setter Property="Padding" Value="10,5"/>
+            <Setter Property="Margin" Value="2,0"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                CornerRadius="3" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#D0D0D0"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="HostRow" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Margin" Value="0,1"/>
+            <Setter Property="Padding" Value="8,6"/>
+            <Setter Property="CornerRadius" Value="3"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#F0F7FF"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+    <DockPanel>
+        <!-- Toolbar -->
+        <Border DockPanel.Dock="Top" Background="#FAFAFA" Padding="8,6" BorderBrush="#E0E0E0" BorderThickness="0,0,0,1">
+            <DockPanel>
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                    <Button x:Name="BtnAddHost" Content="&#x2795; New Host" Style="{StaticResource ToolBarButton}"/>
+                    <Button x:Name="BtnCategoryMgr" Content="&#x1F4C1; Categories" Style="{StaticResource ToolBarButton}"/>
+                    <Button x:Name="BtnEditJson" Content="&#x1F4DD; Edit" Style="{StaticResource ToolBarButton}"/>
+                </StackPanel>
+                <Grid>
+                    <TextBox x:Name="TxtSearch" Padding="6,4" FontSize="13" BorderBrush="#CCC" BorderThickness="1"
+                             Background="White" VerticalContentAlignment="Center"/>
+                    <TextBlock x:Name="TxtSearchPlaceholder" Text="Search..." IsHitTestVisible="False"
+                               Padding="8,5" FontSize="13" Foreground="#AAA"
+                               VerticalAlignment="Center"/>
+                </Grid>
+            </DockPanel>
+        </Border>
+
+        <!-- Connection mode bar -->
+        <Border DockPanel.Dock="Bottom" Background="#FAFAFA" Padding="8,5" BorderBrush="#E0E0E0" BorderThickness="0,1,0,0">
+            <DockPanel>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="Mode:" VerticalAlignment="Center" Margin="0,0,6,0" Foreground="#666"/>
+                    <RadioButton x:Name="RbWindowed" Content="Windowed" VerticalAlignment="Center" Margin="0,0,12,0" GroupName="ConnMode"/>
+                    <RadioButton x:Name="RbFullScreen" Content="FullScreen" VerticalAlignment="Center" GroupName="ConnMode"/>
+                </StackPanel>
+                <TextBlock x:Name="TxtStatusBar" DockPanel.Dock="Right" HorizontalAlignment="Right"
+                           VerticalAlignment="Center" Foreground="#999" FontSize="11"/>
+            </DockPanel>
+        </Border>
+
+        <!-- Main content -->
+        <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="8,4">
+            <StackPanel x:Name="PanelCategories"/>
+        </ScrollViewer>
+    </DockPanel>
+</Window>

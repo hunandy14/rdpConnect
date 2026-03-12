@@ -34,6 +34,97 @@ function Show-RdpManager {
     Add-Type -AssemblyName PresentationCore
     Add-Type -AssemblyName WindowsBase
 
+    # Drag adorner (C# class for smooth ghost following cursor)
+    if (-not ([System.Management.Automation.PSTypeName]'RdpDragAdorner').Type) {
+        Add-Type -TypeDefinition @'
+using System;
+using System.Runtime.InteropServices;
+using System.Windows;
+using System.Windows.Documents;
+using System.Windows.Media;
+using System.Windows.Media.Effects;
+using System.Windows.Media.Imaging;
+
+public class RdpDragAdorner : Adorner
+{
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    static extern bool GetCursorPos(out POINT pt);
+
+    [StructLayout(LayoutKind.Sequential)]
+    struct POINT { public int X, Y; }
+
+    private ImageSource _image;
+    private double _width, _height, _fixedX, _mouseOffsetY;
+    private double _currentY;
+
+    public RdpDragAdorner(UIElement adornerParent, FrameworkElement source, double mouseOffsetY)
+        : base(adornerParent)
+    {
+        IsHitTestVisible = false;
+        _width = source.ActualWidth;
+        _height = source.ActualHeight;
+        _mouseOffsetY = mouseOffsetY;
+
+        // Fixed X = element's left edge relative to adorner parent
+        Point pos = source.TranslatePoint(new Point(0, 0), adornerParent);
+        _fixedX = pos.X;
+        _currentY = pos.Y;
+
+        // Render element to bitmap (snapshot before opacity change)
+        PresentationSource ps = PresentationSource.FromVisual(adornerParent);
+        double dpiX = 96;
+        double dpiY = 96;
+        if (ps != null && ps.CompositionTarget != null)
+        {
+            dpiX = 96.0 * ps.CompositionTarget.TransformToDevice.M11;
+            dpiY = 96.0 * ps.CompositionTarget.TransformToDevice.M22;
+        }
+        DrawingVisual dv = new DrawingVisual();
+        using (DrawingContext dc = dv.RenderOpen())
+        {
+            VisualBrush vb = new VisualBrush(source);
+            vb.Stretch = Stretch.None;
+            dc.DrawRectangle(vb, null, new Rect(0, 0, _width, _height));
+        }
+        RenderTargetBitmap bmp = new RenderTargetBitmap(
+            (int)Math.Ceiling(_width * dpiX / 96.0),
+            (int)Math.Ceiling(_height * dpiY / 96.0),
+            dpiX, dpiY, PixelFormats.Pbgra32);
+        bmp.Render(dv);
+        _image = bmp;
+    }
+
+    public void UpdatePosition()
+    {
+        POINT pt;
+        GetCursorPos(out pt);
+        Point screenPt = new Point(pt.X, pt.Y);
+        Point localPt = this.PointFromScreen(screenPt);
+        _currentY = localPt.Y - _mouseOffsetY;
+        InvalidateVisual();
+    }
+
+    protected override void OnRender(DrawingContext dc)
+    {
+        Rect rect = new Rect(_fixedX, _currentY, _width, _height);
+        // Soft shadow
+        dc.PushOpacity(0.15);
+        dc.DrawImage(_image, new Rect(_fixedX + 4, _currentY + 4, _width, _height));
+        dc.Pop();
+        // Ghost image
+        dc.PushOpacity(0.88);
+        dc.DrawImage(_image, rect);
+        dc.Pop();
+        // Blue border
+        dc.DrawRectangle(null,
+            new Pen(new SolidColorBrush(Color.FromRgb(0, 120, 212)), 1.5),
+            new Rect(_fixedX - 0.5, _currentY - 0.5, _width + 1, _height + 1));
+    }
+}
+'@ -ReferencedAssemblies PresentationCore, PresentationFramework, WindowsBase, System.Xaml
+    }
+
     # --- Resolve paths ---
     $paths = Get-RdpDataPath -BasePath $(if ($Path) { Split-Path $Path -Parent } else { $null })
     if ($Path) { $paths.DataPath = $Path }
@@ -129,6 +220,43 @@ function Show-RdpManager {
         $script:dropIndicator.Margin = [System.Windows.Thickness]::new(0, -1, 0, -1)
         $script:dropIndicator.IsHitTestVisible = $false
 
+        # Drag ghost adorner (AdornerLayer approach — proven WPF pattern)
+        $script:dragAdorner = $null
+        $script:dragAdornerLayer = $null
+        $script:dragSourceElement = $null
+
+        function Show-DragAdorner {
+            param($SourceElement)
+            $script:dragSourceElement = $SourceElement
+
+            # Get adorner layer from window content
+            $script:dragAdornerLayer = [System.Windows.Documents.AdornerLayer]::GetAdornerLayer($window.Content)
+            if (-not $script:dragAdornerLayer) { return }
+
+            # Calculate mouse Y offset within the element
+            $mouseInElement = [System.Windows.Input.Mouse]::GetPosition($SourceElement)
+            $mouseOffsetY = $mouseInElement.Y
+
+            # Create adorner (captures visual BEFORE opacity change)
+            $script:dragAdorner = [RdpDragAdorner]::new($window.Content, $SourceElement, $mouseOffsetY)
+            $script:dragAdornerLayer.Add($script:dragAdorner)
+
+            # Make source semi-transparent (placeholder effect)
+            $SourceElement.Opacity = 0.3
+        }
+
+        function Hide-DragAdorner {
+            if ($script:dragAdorner -and $script:dragAdornerLayer) {
+                $script:dragAdornerLayer.Remove($script:dragAdorner)
+                $script:dragAdorner = $null
+                $script:dragAdornerLayer = $null
+            }
+            if ($script:dragSourceElement) {
+                $script:dragSourceElement.Opacity = 1.0
+                $script:dragSourceElement = $null
+            }
+        }
+
         # Helper: find drop index in a StackPanel based on Y position
         function Get-DropIndex {
             param($Panel, $Position)
@@ -206,9 +334,11 @@ function Show-RdpManager {
                         $diff = $pos - $script:dragState.StartPos
                         if ([Math]::Abs($diff.Y) -gt 5) {
                             $script:dragState.Active = $true
+                            Show-DragAdorner -SourceElement $this.Tag.Container
                             $data = New-Object System.Windows.DataObject
                             $data.SetData('CategoryDrag', $true)
                             [System.Windows.DragDrop]::DoDragDrop($this.Tag.Container, $data, 'Move') | Out-Null
+                            Hide-DragAdorner
                             $script:dragState.Active = $false
                             $script:dragState.Source = $null
                             $script:dropIndicator.Visibility = 'Collapsed'
@@ -396,9 +526,11 @@ function Show-RdpManager {
                             $diff = $pos - $script:dragState.StartPos
                             if ([Math]::Abs($diff.Y) -gt 5) {
                                 $script:dragState.Active = $true
+                                Show-DragAdorner -SourceElement $this.Tag.Row
                                 $data = New-Object System.Windows.DataObject
                                 $data.SetData('HostDrag', $script:dragState.CatName)
                                 [System.Windows.DragDrop]::DoDragDrop($this.Tag.Row, $data, 'Move') | Out-Null
+                                Hide-DragAdorner
                                 $script:dragState.Active = $false
                                 $script:dragState.Source = $null
                                 $script:dropIndicator.Visibility = 'Collapsed'
@@ -544,6 +676,13 @@ function Show-RdpManager {
                 }
             }
             $_.Handled = $true
+        })
+
+        # --- Drag ghost follows cursor (via PreviewGiveFeedback + Win32 GetCursorPos) ---
+        $window.Add_PreviewGiveFeedback({
+            if ($script:dragAdorner) {
+                $script:dragAdorner.UpdatePosition()
+            }
         })
 
         # --- Search with debounce ---

@@ -69,10 +69,11 @@ if (Test-Path $PublicPath) {
 Write-Verbose "Creating backward compatibility aliases"
 Set-Alias -Name rdpConnect -Value Connect-RdpSession
 Set-Alias -Name rdpMgr -Value Show-RdpServerList
+Set-Alias -Name rdpManager -Value Show-RdpManager
 Set-Alias -Name Install -Value Install-RdpConnectModule
 Set-Alias -Name WrapUp2Bat -Value Export-RdpBatchLauncher
 
 # Export aliases
-Export-ModuleMember -Alias 'rdpConnect', 'rdpMgr', 'Install', 'WrapUp2Bat'
+Export-ModuleMember -Alias 'rdpConnect', 'rdpMgr', 'rdpManager', 'Install', 'WrapUp2Bat'
 
 Write-Verbose "RdpConnect module loaded successfully"

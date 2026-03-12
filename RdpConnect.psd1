@@ -67,6 +67,7 @@
     FunctionsToExport = @(
         'Connect-RdpSession',
         'Show-RdpServerList',
+        'Show-RdpManager',
         'Install-RdpConnectModule',
         'Export-RdpBatchLauncher'
     )
@@ -81,6 +82,7 @@
     AliasesToExport = @(
         'rdpConnect',
         'rdpMgr',
+        'rdpManager',
         'Install',
         'WrapUp2Bat'
     )

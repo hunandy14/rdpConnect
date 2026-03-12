@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "categories": [
+    {
+      "name": "Production",
+      "order": 0,
+      "hosts": [
+        {
+          "name": "Web Server",
+          "ip": "192.168.1.100",
+          "order": 0,
+          "accounts": [
+            { "label": "Administrator", "username": "administrator", "password": "Password123" },
+            { "label": "Deploy", "username": "deploy", "password": "" }
+          ],
+          "defaultAccount": 0
+        },
+        {
+          "name": "DB Server",
+          "ip": "192.168.1.101",
+          "order": 1,
+          "accounts": [
+            { "label": "sa", "username": "sa", "password": "Password456" }
+          ],
+          "defaultAccount": 0
+        }
+      ]
+    },
+    {
+      "name": "Development",
+      "order": 1,
+      "hosts": [
+        {
+          "name": "Dev Machine",
+          "ip": "192.168.1.102",
+          "order": 0,
+          "accounts": [
+            { "label": "dev", "username": "dev", "password": "" }
+          ],
+          "defaultAccount": 0
+        }
+      ]
+    }
+  ]
+}

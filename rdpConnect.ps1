@@ -161,29 +161,31 @@ function rdpMaxSize {
     [double] $Width   = $ScreenInfo.Width
     [double] $Height  = $ScreenInfo.Height
     [double] $Scaling = $ScreenInfo.Scaling
+    
     # 初始數據
-    $star   = $ScreenInfo.TaskbarHeight
     $title  = (30-2)
     $margin = 7
-    # 邊距常數已是物理像素，Scaling 修正後不需再縮放
-    $margin2 = [Math]::Round(($Scaling*$margin), 0, [MidpointRounding]::ToEven)
     $title2  = [Math]::Round(($Scaling*$title ), 0, [MidpointRounding]::ToEven)
-    $star2   = $star
+    $margin2 = [Math]::Round(($Scaling*$margin), 0, [MidpointRounding]::ToEven)
+    
     # 計算實際邊緣寬度
     $mgW = $margin2+$margin2+1
     $mgH = $title2+2+$margin2+2
     $mgW = [Math]::Round(($mgW+0.5), 0, [MidpointRounding]::ToEven)
     $mgH = [Math]::Round(($mgH+0.5), 0, [MidpointRounding]::ToEven)
+    
     # 輸出視窗範圍
-    $x2 = $Width
-    $y2 = $Height - $star2
     $x1 = 0
     $y1 = [Math]::Round(($margin2+0.5), 0, [MidpointRounding]::ToEven)
+    $x2 = $Width
+    $y2 = $Height - $ScreenInfo.TaskbarHeight
+    
     # 計算解度
     $w = $x2-$x1-$mgW
     $h = $y2-$y1-$mgH
     $w = [Math]::Round(($w-0.5), 0, [MidpointRounding]::ToEven)
     $h = [Math]::Round(($h-0.5), 0, [MidpointRounding]::ToEven)
+    
     # 建立RDP
     $rdp = New-RdpInfo $IP $w $h $x1 $y1 $x2 $y2
     $rdp.Margin[0] = $mgW

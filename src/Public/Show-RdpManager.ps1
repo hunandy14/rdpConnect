@@ -202,23 +202,15 @@ public class RdpDragAdorner : Adorner
 
         # --- Drag-drop state ---
         $script:dragState = @{
-            Active    = $false
-            Source    = $null
-            StartPos  = $null
-            Type      = $null
-            CatName   = $null
-            HostIndex = -1
-            CatIndex  = -1
+            Active       = $false
+            Source       = $null
+            StartPos     = $null
+            Type         = $null
+            CatName      = $null
+            HostIndex    = -1
+            CatIndex     = -1
+            CurrentIndex = -1   # Tracks live position during drag
         }
-
-        # Drop indicator (thin blue line)
-        $script:dropIndicator = New-Object System.Windows.Controls.Border
-        $script:dropIndicator.Height = 2
-        $script:dropIndicator.Background = [System.Windows.Media.BrushConverter]::new().ConvertFrom('#0078D4')
-        $script:dropIndicator.Visibility = 'Collapsed'
-        $script:dropIndicator.HorizontalAlignment = 'Stretch'
-        $script:dropIndicator.Margin = [System.Windows.Thickness]::new(0, -1, 0, -1)
-        $script:dropIndicator.IsHitTestVisible = $false
 
         # Drag ghost adorner (AdornerLayer approach — proven WPF pattern)
         $script:dragAdorner = $null
@@ -257,18 +249,82 @@ public class RdpDragAdorner : Adorner
             }
         }
 
-        # Helper: find drop index in a StackPanel based on Y position
+        # Helper: find drop index with directional threshold (like react-beautiful-dnd)
+        # Dragging DOWN → must pass 65% of target to trigger swap (prevents premature trigger)
+        # Dragging UP   → only need to pass 35% of target (feels natural)
         function Get-DropIndex {
-            param($Panel, $Position)
+            param($Panel, $Position, [int]$CurrentIndex = -1)
             $y = $Position.Y
             $index = 0
             foreach ($child in $Panel.Children) {
-                if ($child -eq $script:dropIndicator) { continue }
                 $childPos = $child.TranslatePoint([System.Windows.Point]::new(0, 0), $Panel)
-                $childMid = $childPos.Y + ($child.ActualHeight / 2)
-                if ($y -gt $childMid) { $index++ } else { break }
+                if ($CurrentIndex -ge 0) {
+                    # Directional bias: items below current need higher threshold
+                    $ratio = if ($index -ge $CurrentIndex) { 0.65 } else { 0.35 }
+                } else {
+                    $ratio = 0.5
+                }
+                $threshold = $childPos.Y + ($child.ActualHeight * $ratio)
+                if ($y -gt $threshold) { $index++ } else { break }
             }
             return $index
+        }
+
+        # Helper: move child in StackPanel with FLIP animation (First-Last-Invert-Play)
+        # Same technique as React dnd-kit / react-beautiful-dnd for smooth reorder
+        $script:lastMoveTime = [DateTime]::MinValue
+
+        function Move-PanelChild {
+            param($Panel, [int]$FromIndex, [int]$ToIndex)
+            if ($FromIndex -eq $ToIndex) { return }
+
+            # Throttle: skip if last move was < 100ms ago (prevents jitter from rapid DragOver)
+            $now = [DateTime]::Now
+            if (($now - $script:lastMoveTime).TotalMilliseconds -lt 100) { return }
+            $script:lastMoveTime = $now
+
+            # FLIP Step 1 (First): record Y positions of ALL children before move
+            $oldPositions = @{}
+            foreach ($item in $Panel.Children) {
+                $pos = $item.TranslatePoint([System.Windows.Point]::new(0, 0), $Panel)
+                $oldPositions[$item.GetHashCode()] = $pos.Y
+            }
+
+            # FLIP Step 2 (Last): do the actual DOM move
+            $child = $Panel.Children[$FromIndex]
+            $Panel.Children.RemoveAt($FromIndex)
+            if ($ToIndex -gt $Panel.Children.Count) { $ToIndex = $Panel.Children.Count }
+            $Panel.Children.Insert($ToIndex, $child)
+
+            # Force layout so new positions are calculated
+            $Panel.UpdateLayout()
+
+            # FLIP Step 3+4 (Invert+Play): animate each moved sibling from old→new position
+            foreach ($item in $Panel.Children) {
+                if ($item -eq $child) { continue }  # Skip dragged item itself
+                $hashCode = $item.GetHashCode()
+                if (-not $oldPositions.ContainsKey($hashCode)) { continue }
+
+                $newPos = $item.TranslatePoint([System.Windows.Point]::new(0, 0), $Panel)
+                $deltaY = $oldPositions[$hashCode] - $newPos.Y
+
+                # Only animate if actually moved (> 1px)
+                if ([Math]::Abs($deltaY) -gt 1) {
+                    $tt = New-Object System.Windows.Media.TranslateTransform
+                    $tt.Y = $deltaY  # Start at OLD position (inverted)
+                    $item.RenderTransform = $tt
+
+                    # Animate to 0 (new/final position)
+                    $anim = New-Object System.Windows.Media.Animation.DoubleAnimation
+                    $anim.From = $deltaY
+                    $anim.To = 0
+                    $anim.Duration = [System.Windows.Duration]::new([TimeSpan]::FromMilliseconds(200))
+                    $ease = New-Object System.Windows.Media.Animation.CubicEase
+                    $ease.EasingMode = [System.Windows.Media.Animation.EasingMode]::EaseOut
+                    $anim.EasingFunction = $ease
+                    $tt.BeginAnimation([System.Windows.Media.TranslateTransform]::YProperty, $anim)
+                }
+            }
         }
 
         # --- Build host list UI ---
@@ -327,6 +383,7 @@ public class RdpDragAdorner : Adorner
                     $script:dragState.Source = $this.Tag.Container
                     $script:dragState.Type = 'category'
                     $script:dragState.CatIndex = $this.Tag.CatIndex
+                    $script:dragState.CurrentIndex = $this.Tag.CatIndex
                 })
                 $dragHandle.Add_PreviewMouseMove({
                     if ($script:dragState.Source -and $script:dragState.Type -eq 'category' -and $_.LeftButton -eq 'Pressed') {
@@ -341,7 +398,6 @@ public class RdpDragAdorner : Adorner
                             Hide-DragAdorner
                             $script:dragState.Active = $false
                             $script:dragState.Source = $null
-                            $script:dropIndicator.Visibility = 'Collapsed'
                         }
                     }
                 })
@@ -411,7 +467,7 @@ public class RdpDragAdorner : Adorner
                 if (-not $isExpanded) { $hostPanel.Visibility = 'Collapsed' }
                 $catContainer.Tag.HostPanel = $hostPanel
 
-                # Host drop target: DragOver shows indicator
+                # Host drop target: DragOver does live reorder (like dnd-kit)
                 $hostPanel.Add_DragOver({
                     if ($_.Data.GetDataPresent('HostDrag')) {
                         $sourceCat = $_.Data.GetData('HostDrag')
@@ -421,55 +477,33 @@ public class RdpDragAdorner : Adorner
                         }
                         $_.Effects = 'Move'
                         $pos = $_.GetPosition($this)
-                        $idx = Get-DropIndex -Panel $this -Position $pos
-                        if ($script:dropIndicator.Parent) {
-                            $script:dropIndicator.Parent.Children.Remove($script:dropIndicator)
-                        }
-                        $script:dropIndicator.Visibility = 'Visible'
-                        if ($idx -ge $this.Children.Count) {
-                            $this.Children.Add($script:dropIndicator) | Out-Null
-                        }
-                        else {
-                            $this.Children.Insert($idx, $script:dropIndicator) | Out-Null
+                        $currentIdx = $script:dragState.CurrentIndex
+                        $targetIdx = Get-DropIndex -Panel $this -Position $pos -CurrentIndex $currentIdx
+
+                        if ($targetIdx -ne $currentIdx -and $currentIdx -ge 0) {
+                            # Move UI element with animation
+                            Move-PanelChild -Panel $this -FromIndex $currentIdx -ToIndex $targetIdx
+
+                            # Move data in array
+                            $catData = $script:rdpData.categories | Where-Object { $_.name -eq $sourceCat }
+                            if ($catData) {
+                                $hosts = [System.Collections.ArrayList]@($catData.hosts)
+                                $item = $hosts[$currentIdx]
+                                $hosts.RemoveAt($currentIdx)
+                                if ($targetIdx -gt $hosts.Count) { $targetIdx = $hosts.Count }
+                                $hosts.Insert($targetIdx, $item)
+                                $catData.hosts = @($hosts)
+                                $script:dragState.CurrentIndex = $targetIdx
+                            }
                         }
                     }
                     $_.Handled = $true
                 })
 
-                $hostPanel.Add_DragLeave({
-                    if ($script:dropIndicator.Parent -eq $this) {
-                        $this.Children.Remove($script:dropIndicator)
-                        $script:dropIndicator.Visibility = 'Collapsed'
-                    }
-                })
-
-                # Host drop target: Drop reorders
+                # Host drop target: Drop saves final order
                 $hostPanel.Add_Drop({
                     if ($_.Data.GetDataPresent('HostDrag')) {
-                        $sourceCat = $_.Data.GetData('HostDrag')
-                        if ($sourceCat -ne $this.Tag) { return }
-
-                        if ($script:dropIndicator.Parent) {
-                            $script:dropIndicator.Parent.Children.Remove($script:dropIndicator)
-                            $script:dropIndicator.Visibility = 'Collapsed'
-                        }
-
-                        $pos = $_.GetPosition($this)
-                        $targetIdx = Get-DropIndex -Panel $this -Position $pos
-                        $sourceIdx = $script:dragState.HostIndex
-
-                        $catData = $script:rdpData.categories | Where-Object { $_.name -eq $sourceCat }
-                        if ($catData -and $sourceIdx -ne $targetIdx) {
-                            $hosts = [System.Collections.ArrayList]@($catData.hosts)
-                            $item = $hosts[$sourceIdx]
-                            $hosts.RemoveAt($sourceIdx)
-                            if ($targetIdx -gt $sourceIdx) { $targetIdx-- }
-                            if ($targetIdx -gt $hosts.Count) { $targetIdx = $hosts.Count }
-                            $hosts.Insert($targetIdx, $item)
-                            $catData.hosts = @($hosts)
-                            Save-RdpData -Data $script:rdpData -Path $script:dataPath
-                            Update-HostList -Filter $txtSearch.Text
-                        }
+                        Save-RdpData -Data $script:rdpData -Path $script:dataPath
                     }
                     $_.Handled = $true
                 })
@@ -519,6 +553,7 @@ public class RdpDragAdorner : Adorner
                         $script:dragState.Type = 'host'
                         $script:dragState.CatName = $this.Tag.CatName
                         $script:dragState.HostIndex = $this.Tag.HostIndex
+                        $script:dragState.CurrentIndex = $this.Tag.HostIndex
                     })
                     $grip.Add_PreviewMouseMove({
                         if ($script:dragState.Source -and $script:dragState.Type -eq 'host' -and $_.LeftButton -eq 'Pressed') {
@@ -533,7 +568,6 @@ public class RdpDragAdorner : Adorner
                                 Hide-DragAdorner
                                 $script:dragState.Active = $false
                                 $script:dragState.Source = $null
-                                $script:dropIndicator.Visibility = 'Collapsed'
                             }
                         }
                     })
@@ -626,54 +660,35 @@ public class RdpDragAdorner : Adorner
 
         # --- Category drag-drop on main panel ---
         $panelCategories.AllowDrop = $true
+        # Category DragOver: live reorder (like dnd-kit)
         $panelCategories.Add_DragOver({
             if ($_.Data.GetDataPresent('CategoryDrag')) {
                 $_.Effects = 'Move'
                 $pos = $_.GetPosition($this)
-                $idx = Get-DropIndex -Panel $this -Position $pos
-                if ($script:dropIndicator.Parent) {
-                    $script:dropIndicator.Parent.Children.Remove($script:dropIndicator)
-                }
-                $script:dropIndicator.Visibility = 'Visible'
-                if ($idx -ge $this.Children.Count) {
-                    $this.Children.Add($script:dropIndicator) | Out-Null
-                }
-                else {
-                    $this.Children.Insert($idx, $script:dropIndicator) | Out-Null
+                $currentIdx = $script:dragState.CurrentIndex
+                $targetIdx = Get-DropIndex -Panel $this -Position $pos -CurrentIndex $currentIdx
+
+                if ($targetIdx -ne $currentIdx -and $currentIdx -ge 0) {
+                    # Move UI element with animation
+                    Move-PanelChild -Panel $this -FromIndex $currentIdx -ToIndex $targetIdx
+
+                    # Move data in array
+                    $cats = [System.Collections.ArrayList]@($script:rdpData.categories)
+                    $item = $cats[$currentIdx]
+                    $cats.RemoveAt($currentIdx)
+                    if ($targetIdx -gt $cats.Count) { $targetIdx = $cats.Count }
+                    $cats.Insert($targetIdx, $item)
+                    $script:rdpData.categories = @($cats)
+                    $script:dragState.CurrentIndex = $targetIdx
                 }
             }
             $_.Handled = $true
         })
 
-        $panelCategories.Add_DragLeave({
-            if ($script:dropIndicator.Parent -eq $this) {
-                $this.Children.Remove($script:dropIndicator)
-                $script:dropIndicator.Visibility = 'Collapsed'
-            }
-        })
-
+        # Category Drop: save final order
         $panelCategories.Add_Drop({
             if ($_.Data.GetDataPresent('CategoryDrag')) {
-                if ($script:dropIndicator.Parent) {
-                    $script:dropIndicator.Parent.Children.Remove($script:dropIndicator)
-                    $script:dropIndicator.Visibility = 'Collapsed'
-                }
-
-                $pos = $_.GetPosition($this)
-                $targetIdx = Get-DropIndex -Panel $this -Position $pos
-                $sourceIdx = $script:dragState.CatIndex
-
-                if ($sourceIdx -ne $targetIdx) {
-                    $cats = [System.Collections.ArrayList]@($script:rdpData.categories)
-                    $item = $cats[$sourceIdx]
-                    $cats.RemoveAt($sourceIdx)
-                    if ($targetIdx -gt $sourceIdx) { $targetIdx-- }
-                    if ($targetIdx -gt $cats.Count) { $targetIdx = $cats.Count }
-                    $cats.Insert($targetIdx, $item)
-                    $script:rdpData.categories = @($cats)
-                    Save-RdpData -Data $script:rdpData -Path $script:dataPath
-                    Update-HostList -Filter $txtSearch.Text
-                }
+                Save-RdpData -Data $script:rdpData -Path $script:dataPath
             }
             $_.Handled = $true
         })

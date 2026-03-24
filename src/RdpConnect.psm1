@@ -6,7 +6,7 @@
 
 .DESCRIPTION
     This file is used during module development. It dot-sources all function
-    files from src/Private and src/Public directories.
+    files from Private and Public directories under src/.
 
     For production use, run build.ps1 to create optimized versions:
     - build/Module/RdpConnect: Standard multi-file module
@@ -26,7 +26,7 @@ $ModuleRoot = $PSScriptRoot
 Write-Verbose "Loading RdpConnect module from: $ModuleRoot"
 
 # Load Private functions (internal helpers)
-$PrivatePath = Join-Path $ModuleRoot 'src/Private'
+$PrivatePath = Join-Path $ModuleRoot 'Private'
 if (Test-Path $PrivatePath) {
     $PrivateFunctions = Get-ChildItem "$PrivatePath/*.ps1" -ErrorAction SilentlyContinue
 
@@ -44,7 +44,7 @@ if (Test-Path $PrivatePath) {
 }
 
 # Load Public functions (exported commands)
-$PublicPath = Join-Path $ModuleRoot 'src/Public'
+$PublicPath = Join-Path $ModuleRoot 'Public'
 if (Test-Path $PublicPath) {
     $PublicFunctions = Get-ChildItem "$PublicPath/*.ps1" -ErrorAction SilentlyContinue
 

@@ -64,8 +64,8 @@ param (
 
 $Script:Config = @{
     ModuleName        = 'RdpConnect'
-    RootPath          = $PSScriptRoot
-    SrcPath           = Join-Path $PSScriptRoot 'src'
+    RootPath          = Split-Path $PSScriptRoot -Parent
+    SrcPath           = $PSScriptRoot
     OutputPath        = $OutputPath
     Author            = 'hunandy14'
     CompanyName       = 'Personal'

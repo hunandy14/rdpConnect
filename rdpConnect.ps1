@@ -2,46 +2,56 @@
 function GetScreenInfo {
     [CmdletBinding()]
     param()
-    if (-not ('PInvoke' -as [type])) {
+    if (-not ('ScreenHelper' -as [type])) {
+        Write-Verbose "ScreenHelper 型別不存在，正在載入..."
         Add-Type -TypeDefinition @'
             using System;
             using System.Runtime.InteropServices;
-            public class PInvoke {
-                [DllImport("user32.dll")] public static extern IntPtr GetDC(IntPtr hwnd);
-                [DllImport("gdi32.dll")] public static extern int GetDeviceCaps(IntPtr hdc, int nIndex);
-                [DllImport("user32.dll", SetLastError = true)] public static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
-                [DllImport("user32.dll", SetLastError = true)] public static extern bool GetWindowRect(IntPtr hWnd, out RECT lpRect);
+            public class ScreenHelper {
                 [StructLayout(LayoutKind.Sequential)]
                 public struct RECT {
-                    public int Left;
-                    public int Top;
-                    public int Right;
-                    public int Bottom;
+                    public int Left, Top, Right, Bottom;
                 }
+                [DllImport("user32.dll")]
+                public static extern bool SystemParametersInfo(int uiAction, int uiParam, out RECT pvParam, int fWinIni);
+                [DllImport("user32.dll")]
+                public static extern IntPtr MonitorFromPoint(long pt, uint dwFlags);
+                [DllImport("shcore.dll")]
+                public static extern int GetDpiForMonitor(IntPtr hMonitor, int dpiType, out uint dpiX, out uint dpiY);
+                [DllImport("gdi32.dll")]
+                public static extern int GetDeviceCaps(IntPtr hdc, int nIndex);
+                [DllImport("user32.dll")]
+                public static extern IntPtr GetDC(IntPtr hwnd);
             }
 '@
-        Write-Verbose "PInvoke 型別載入完成"
-    } else {
-        Write-Verbose "PInvoke 型別已存在，跳過載入"
-    }
-    
-    $hdc = [PInvoke]::GetDC([IntPtr]::Zero)
-    $Scaling = [PInvoke]::GetDeviceCaps($hdc, 117) / [PInvoke]::GetDeviceCaps($hdc, 10)
-    $taskbarHandle = [PInvoke]::FindWindow("Shell_TrayWnd", $null)
-    $taskbarRect = New-Object 'PInvoke+RECT'
-    if (![PInvoke]::GetWindowRect($taskbarHandle, [ref]$taskbarRect)) {
-        throw "Failed to get taskbar dimensions."
-    }; $taskbarHeight = $taskbarRect.Bottom - $taskbarRect.Top
-    
+        Write-Verbose "ScreenHelper 型別載入完成"
+    } else { Write-Verbose "ScreenHelper 型別已存在，跳過載入" }
+
+    # 主螢幕 DPI (per-monitor)
+    $hMonitor = [ScreenHelper]::MonitorFromPoint(0, 1) # MONITOR_DEFAULTTOPRIMARY
+    $dpiX = [uint32]0; $dpiY = [uint32]0
+    [void][ScreenHelper]::GetDpiForMonitor($hMonitor, 0, [ref]$dpiX, [ref]$dpiY)
+    $Scaling = $dpiX / 96
+
+    # 物理解析度與更新率
+    $hdc = [ScreenHelper]::GetDC([IntPtr]::Zero)
+    $Width   = [ScreenHelper]::GetDeviceCaps($hdc, 118)  # DESKTOPHORZRES
+    $Height  = [ScreenHelper]::GetDeviceCaps($hdc, 117)  # DESKTOPVERTRES
+    $Refresh = [ScreenHelper]::GetDeviceCaps($hdc, 116)  # VREFRESH
+
+    # Taskbar 高度 = 螢幕高度 - 工作區高度
+    $workArea = New-Object 'ScreenHelper+RECT'
+    [void][ScreenHelper]::SystemParametersInfo(0x0030, 0, [ref]$workArea, 0) # SPI_GETWORKAREA
+    $TaskbarHeight = $Height - ($workArea.Bottom - $workArea.Top)
+
+    Write-Verbose "解析度=${Width}x${Height} DPI=${dpiX} Scaling=${Scaling} Taskbar=${TaskbarHeight}px Refresh=${Refresh}Hz"
+
     [pscustomobject]@{
-        Width         = [PInvoke]::GetDeviceCaps($hdc, 118)
-        Height        = [PInvoke]::GetDeviceCaps($hdc, 117)
-        Refresh       = [PInvoke]::GetDeviceCaps($hdc, 116)
-        TaskbarHeight = $taskbarHeight
+        Width         = $Width
+        Height        = $Height
+        Refresh       = $Refresh
         Scaling       = $Scaling
-        LogicalWidth  = [PInvoke]::GetDeviceCaps($hdc, 8)
-        LogicalHeight = [PInvoke]::GetDeviceCaps($hdc, 10)
-        LogicalTaskbarHeight = [Math]::Round($taskbarHeight * $Scaling)
+        TaskbarHeight = $TaskbarHeight
     }
 } # GetScreenInfo -Verbose
 

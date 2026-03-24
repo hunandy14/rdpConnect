@@ -1,6 +1,8 @@
 # 獲取螢幕解析度
 function GetScreenInfo {
-    if (!$__GetScreenInfoOnce__) { $Script:__GetScreenInfoOnce__ = $true
+    [CmdletBinding()]
+    param()
+    if (-not ('PInvoke' -as [type])) {
         Add-Type -TypeDefinition @'
             using System;
             using System.Runtime.InteropServices;
@@ -18,6 +20,9 @@ function GetScreenInfo {
                 }
             }
 '@
+        Write-Verbose "PInvoke 型別載入完成"
+    } else {
+        Write-Verbose "PInvoke 型別已存在，跳過載入"
     }
     
     $hdc = [PInvoke]::GetDC([IntPtr]::Zero)
@@ -38,7 +43,7 @@ function GetScreenInfo {
         LogicalHeight = [PInvoke]::GetDeviceCaps($hdc, 10)
         LogicalTaskbarHeight = [Math]::Round($taskbarHeight * $Scaling)
     }
-} # if (!$ScreenInfo) { $Script:ScreenInfo = (GetScreenInfo) } 
+} # GetScreenInfo -Verbose
 
 # RDP結構
 function New-RdpInfo {

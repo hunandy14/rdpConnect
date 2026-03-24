@@ -30,12 +30,12 @@ function GetScreenInfo {
 '@
         Write-Verbose "ScreenHelper 型別載入完成"
     } else { Write-Verbose "ScreenHelper 型別已存在，跳過載入" }
-    [void][ScreenHelper]::SetProcessDpiAwareness(2)
-
+    
     # 主螢幕 DPI (per-monitor)
-    $hMonitor = [ScreenHelper]::MonitorFromPoint(0, 1) # MONITOR_DEFAULTTOPRIMARY
-    $dpiX = [uint32]0; $dpiY = [uint32]0
-    [void][ScreenHelper]::GetDpiForMonitor($hMonitor, 0, [ref]$dpiX, [ref]$dpiY)
+    [void][ScreenHelper]::SetProcessDpiAwareness(2) # 啟用 Per-Monitor DPI 感知，取得真實物理像素
+    $hMonitor = [ScreenHelper]::MonitorFromPoint(0, 1) # 1 = MONITOR_DEFAULTTOPRIMARY
+    $dpiX, $dpiY = [uint32]0, [uint32]0
+    [void][ScreenHelper]::GetDpiForMonitor($hMonitor, 0, [ref]$dpiX, [ref]$dpiY) # 0 = MDT_EFFECTIVE_DPI
     $Scaling = $dpiX / 96
 
     # 物理解析度與更新率

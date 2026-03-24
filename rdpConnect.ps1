@@ -2,6 +2,8 @@
 function GetScreenInfo {
     [CmdletBinding()]
     param()
+    
+    # 載入 ScreenHelper 型別
     if (-not ('ScreenHelper' -as [type])) {
         Write-Verbose "ScreenHelper 型別不存在，正在載入..."
         Add-Type -TypeDefinition @'
@@ -12,6 +14,8 @@ function GetScreenInfo {
                 public struct RECT {
                     public int Left, Top, Right, Bottom;
                 }
+                [DllImport("shcore.dll")]
+                public static extern int SetProcessDpiAwareness(int awareness);
                 [DllImport("user32.dll")]
                 public static extern bool SystemParametersInfo(int uiAction, int uiParam, out RECT pvParam, int fWinIni);
                 [DllImport("user32.dll")]
@@ -26,6 +30,7 @@ function GetScreenInfo {
 '@
         Write-Verbose "ScreenHelper 型別載入完成"
     } else { Write-Verbose "ScreenHelper 型別已存在，跳過載入" }
+    [void][ScreenHelper]::SetProcessDpiAwareness(2)
 
     # 主螢幕 DPI (per-monitor)
     $hMonitor = [ScreenHelper]::MonitorFromPoint(0, 1) # MONITOR_DEFAULTTOPRIMARY
@@ -43,9 +48,9 @@ function GetScreenInfo {
     $workArea = New-Object 'ScreenHelper+RECT'
     [void][ScreenHelper]::SystemParametersInfo(0x0030, 0, [ref]$workArea, 0) # SPI_GETWORKAREA
     $TaskbarHeight = $Height - ($workArea.Bottom - $workArea.Top)
-
-    Write-Verbose "解析度=${Width}x${Height} DPI=${dpiX} Scaling=${Scaling} Taskbar=${TaskbarHeight}px Refresh=${Refresh}Hz"
-
+    
+    # 輸出螢幕解資訊
+    Write-Verbose "Resolution=${Width}x${Height} DPI=${dpiX} Scaling=${Scaling} Taskbar=${TaskbarHeight}px Refresh=${Refresh}Hz"
     [pscustomobject]@{
         Width         = $Width
         Height        = $Height

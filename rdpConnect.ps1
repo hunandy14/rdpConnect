@@ -160,10 +160,10 @@ function rdpMaxSize {
     $star   = $ScreenInfo.TaskbarHeight
     $title  = (30-2)
     $margin = 7
-    # 縮放後取到偶數
+    # 邊距常數已是物理像素，Scaling 修正後不需再縮放
     $margin2 = [Math]::Round(($Scaling*$margin), 0, [MidpointRounding]::ToEven)
     $title2  = [Math]::Round(($Scaling*$title ), 0, [MidpointRounding]::ToEven)
-    $star2   = [Math]::Round(($Scaling*$star  ), 0, [MidpointRounding]::ToEven)
+    $star2   = $star
     # 計算實際邊緣寬度
     $mgW = $margin2+$margin2+1
     $mgH = $title2+2+$margin2+2
@@ -190,7 +190,8 @@ function rdpMaxSize {
 # $rdpInfo = (New-RdpInfo '192.168.3.14' -FullScreen)
 # $rdp = $rdpInfo|ConvertTo-Rdp
 # $rdp|Out-File "虛擬機14.rdp"; Start-Process "虛擬機14.rdp"
-
+# $rdpInfo = rdpMaxSize 'i-0a998fd51bfc0ce16.duckdns.org'; $rdpInfo
+# $rdpInfo | ConvertTo-Rdp | Out-File "test.rdp"; Start-Process "test.rdp"
 
 
 # 連接到rdp遠端
@@ -270,14 +271,7 @@ function rdpConnect {
         $rdp|Set-Content $rdp_path; Start-Process $rdp_path
     }
     # return $rdpInfo
-} # rdpConnect 192.168.3.14
-# rdpConnect 192.168.3.14 -Copy:'PassWD'
-# rdpConnect 192.168.3.14 -Ratio:(16/10)
-# rdpConnect 192.168.3.14 -FullScreen
-# rdpConnect 192.168.3.14 -MaxWindows
-# rdpConnect 192.168.3.14 -OutputRDP "run.rdp"
-# rdpConnect 192.168.3.14 -Define 2560 1600 2000 300
-
+} # rdpConnect 'i-0a998fd51bfc0ce16.duckdns.org' -Username:'Administrator'
 
 
 # 安裝到電腦的 PROFILE 參數內

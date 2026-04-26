@@ -120,7 +120,7 @@ function ConvertTo-Rdp {
         if ($env:0) {
             $rdp = (([Io.File]::ReadAllText($env:0,[Text.Encoding]::Default) -split '[:]PwshScript')[3])
         } else {
-            $rdp = Invoke-RestMethod('raw.githubusercontent.com/hunandy14/rdpConnect/master/Template.rdp')
+            $rdp = Invoke-RestMethod('raw.githubusercontent.com/hunandy14/rdpConnect/master/legacy/Template.rdp')
         }
     } # $rdp
     # 設置 rdp 檔案
@@ -292,10 +292,10 @@ function Install {
     } $Dir = (Get-Item $PROFILE).Directory
 
     # 下載ps1到[啟動文件]
-    $URL  = "raw.githubusercontent.com/hunandy14/rdpConnect/master/rdpConnect.ps1"
+    $URL  = "raw.githubusercontent.com/hunandy14/rdpConnect/master/legacy/rdpConnect.ps1"
     Invoke-WebRequest $URL -OutFile:"$Dir\rdpConnect.ps1"
-    $URL  = "raw.githubusercontent.com/hunandy14/rdpConnect/master/Template.ps1"
-    Invoke-WebRequest $URL -OutFile:"$Dir\Template.ps1"
+    $URL  = "raw.githubusercontent.com/hunandy14/rdpConnect/master/legacy/Template.rdp"
+    Invoke-WebRequest $URL -OutFile:"$Dir\Template.rdp"
 
     # 寫入[啟動文件]
     $impt = "Import-Module rdpConnect.ps1"
@@ -331,7 +331,7 @@ function WrapUp2Bat {
     } # ExpandIrm (Invoke-RestMethod bit.ly/Get-FileList)
     
     # 下載
-    $Url  = "raw.githubusercontent.com/hunandy14/rdpConnect/master/rdpMgr.bat"
+    $Url  = "raw.githubusercontent.com/hunandy14/rdpConnect/master/legacy/rdpMgr.bat"
     $Ct = Invoke-RestMethod $Url
     $Ct = ExpandIrm $Ct
     # $Ct = RemoveComment $Ct
@@ -342,7 +342,7 @@ function WrapUp2Bat {
     $Ct = $Ct.Replace("65001", $Encding)
     [IO.File]::WriteAllText("$Path\rdpMgr.bat", $Ct, $Enc);
     # 輸出CSV檔案
-    $Url  = "raw.githubusercontent.com/hunandy14/rdpConnect/master/rdpList.csv"
+    $Url  = "raw.githubusercontent.com/hunandy14/rdpConnect/master/legacy/rdpList.example.csv"
     $Ct = Invoke-RestMethod $Url
     [IO.File]::WriteAllText("$Path\rdpList.csv", $Ct, $Enc);
 } # WrapUp2Bat

@@ -25,7 +25,7 @@ rdpMgr -Path:$CsvPath -Encoding:$Encoding -Ratio:$Ratio
 #:: --------------------------------------------------------------------------------------------------------------------------------
 # Load Setting
 Set-Location ($env:1); [IO.Directory]::SetCurrentDirectory(((Get-Location -PSProvider FileSystem).ProviderPath))
-irm 'raw.githubusercontent.com/hunandy14/rdpConnect/master/rdpConnect.ps1'|iex
+irm 'raw.githubusercontent.com/hunandy14/rdpConnect/master/legacy/rdpConnect.ps1'|iex
 (([Io.File]::ReadAllText($env:0,[Text.Encoding]::Default) -split '[:]PwshScript')[1])|iex
 
 

@@ -109,7 +109,7 @@ function GetScreenInfo {
         Scaling       = $Scaling
         TaskbarHeight = $TaskbarHeight
     }
-} # GetScreenInfo -Verbose
+}
 
 # RDP結構
 function New-RdpInfo {
@@ -148,11 +148,7 @@ function New-RdpInfo {
         Scaling    = $null
         Path       = '.\Default.rdp'
     }
-} # New-RdpInfo '192.168.3.14'
-# $rdpInfo = (New-RdpInfo '192.168.3.14' 3818 2034 0 10 3840 2100)
-# $rdpInfo = (New-RdpInfo '192.168.3.14' -FullScreen)
-# $rdpInfo
-# return
+}
 
 # 轉換至RDP檔案（預設使用嵌入式樣板，可指定外部檔案覆蓋）
 function ConvertTo-Rdp {
@@ -189,11 +185,7 @@ function ConvertTo-Rdp {
         $rdp = $rdp.Replace('${y2}',0)
     }
     return $rdp
-} # (New-RdpInfo -FullScreen)|ConvertTo-Rdp
-# $rdpInfo = (New-RdpInfo '192.168.3.14' 3818 2034 0 10 3840 2100)
-# $rdpInfo = (New-RdpInfo '192.168.3.14' -FullScreen)
-# $rdp = ($rdpInfo|ConvertTo-Rdp)
-# $rdp > 虛擬機14.rdp; explorer.exe 虛擬機14.rdp
+}
 
 # 計算最大化的視窗數值
 function rdpMaxSize {
@@ -236,14 +228,7 @@ function rdpMaxSize {
     $rdp.Margin[1] = $mgH
     $rdp.Scaling = $Scaling
     return $rdp
-} # rdpMaxSize '192.168.2.14'
-# $rdpInfo = rdpMaxSize '192.168.3.14'
-# $rdpInfo = (New-RdpInfo '192.168.3.14' -FullScreen)
-# $rdp = $rdpInfo|ConvertTo-Rdp
-# $rdp|Out-File "虛擬機14.rdp"; Start-Process "虛擬機14.rdp"
-# $rdpInfo = rdpMaxSize 'i-0a998fd51bfc0ce16.duckdns.org'; $rdpInfo
-# $rdpInfo | ConvertTo-Rdp | Out-File "test.rdp"; Start-Process "test.rdp"
-
+}
 
 # 連接到rdp遠端
 function rdpConnect {
@@ -322,49 +307,7 @@ function rdpConnect {
         $rdp|Set-Content $rdp_path; Start-Process $rdp_path
     }
     # return $rdpInfo
-} # rdpConnect 'i-0a998fd51bfc0ce16.duckdns.org' -Username:'Administrator'
-
-
-# 安裝到電腦的 PROFILE 參數內（樣板已嵌入，不再下載 Template.rdp）
-function Install {
-    param (
-        [switch] $ForceAppend
-    )
-    # 創建[啟動文件]
-    if (!(Test-Path -Path $PROFILE )) {
-        New-Item -Type File -Path $PROFILE -Force
-    } $Dir = (Get-Item $PROFILE).Directory
-
-    # 下載ps1到[啟動文件]
-    $URL  = "raw.githubusercontent.com/hunandy14/rdpConnect/master/legacy-v2/rdpConnect.ps1"
-    Invoke-WebRequest $URL -OutFile:"$Dir\rdpConnect.ps1"
-
-    # 寫入[啟動文件]
-    $impt = "Import-Module rdpConnect.ps1"
-    if ($ForceAppend) {
-        if (!((Get-Content $PROFILE)|Where-Object{$_ -eq $impt})) { Add-Content $PROFILE "`n$impt" }
-        Write-Host "Has been Added rdpConnect to PROFILE." -ForegroundColor:Yellow
-    } else {
-        Set-Clipboard $impt
-        Write-Host "Has been copy to Clipboard. Please paste it on the PROFILE." -ForegroundColor:Yellow
-        notepad.exe $PROFILE
-    }
-} # Install
-
-
-# 下載離線包到電腦（rdpConnect.ps1 + rdpMgr.bat + rdpList.csv）
-function WrapUp2Bat {
-    param (
-        $Path = [Environment]::GetFolderPath("Desktop")
-    )
-    $Base = "raw.githubusercontent.com/hunandy14/rdpConnect/master/legacy-v2"
-    Invoke-WebRequest "$Base/rdpConnect.ps1" -OutFile:"$Path\rdpConnect.ps1"
-    Invoke-WebRequest "$Base/rdpMgr.bat"     -OutFile:"$Path\rdpMgr.bat"
-    if (-not (Test-Path "$Path\rdpList.csv")) {
-        Invoke-WebRequest "$Base/rdpList.csv" -OutFile:"$Path\rdpList.csv"
-    }
-} # WrapUp2Bat
-
+}
 
 # 儲存管理多個rdp清單
 function rdpMgr {
@@ -409,5 +352,4 @@ function rdpMgr {
             rdpConnect $Serv.IP -Copy:$Serv.PW -Username:$Serv.AC -Ratio:$Ratio
         }
     }
-} # rdpMgr
-# rdpMgr -FullScreen
+}

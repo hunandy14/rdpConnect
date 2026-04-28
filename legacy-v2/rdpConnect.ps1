@@ -56,7 +56,7 @@ function GetScreenInfo {
 
     # 載入 ScreenHelper 型別
     if (-not ('ScreenHelper' -as [type])) {
-        Write-Verbose "ScreenHelper 型別不存在，正在載入..."
+        Write-Verbose "ScreenHelper type not found, loading..."
         Add-Type -TypeDefinition @'
             using System;
             using System.Runtime.InteropServices;
@@ -79,8 +79,8 @@ function GetScreenInfo {
                 public static extern IntPtr GetDC(IntPtr hwnd);
             }
 '@
-        Write-Verbose "ScreenHelper 型別載入完成"
-    } else { Write-Verbose "ScreenHelper 型別已存在，跳過載入" }
+        Write-Verbose "ScreenHelper type loaded successfully"
+    } else { Write-Verbose "ScreenHelper type already exists, skipping" }
 
     # 主螢幕 DPI (per-monitor)
     [void][ScreenHelper]::SetProcessDpiAwareness(2) # 啟用 Per-Monitor DPI 感知，取得真實物理像素
@@ -281,7 +281,7 @@ function rdpConnect {
             $rdpInfo.Winposstr[1] = ([Int64]$rdpInfo.Winposstr[3]-$rdpInfo.Resolution[1]-$rdpInfo.Margin[1])
             # 符合範圍內才更新(x1, y1)
             if (($x1 -gt -1) -and ($x1 -le $rdpInfo.Winposstr[0])) { $rdpInfo.Winposstr[0] = $x1 }
-            if (($y1 -gt -1) -and ($y1 -le $rdpInfo.Winposstr[0])) { $rdpInfo.Winposstr[1] = $y1 }
+            if (($y1 -gt -1) -and ($y1 -le $rdpInfo.Winposstr[1])) { $rdpInfo.Winposstr[1] = $y1 }
         # 預設模式分割成特定比例
         } else {
             $newWidth = ($Ratio*$rdpInfo.Resolution[1])
